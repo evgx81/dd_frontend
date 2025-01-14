@@ -4,7 +4,8 @@ const CLASSES = {
     SCROLLED : 'js--scrolled',
     ACTIVE: 'js--active',
     NONE: 'js--none',
-    SHOW: 'js--show'
+    SHOW: 'js--show',
+    POSITION: 'js--position'
 };
 const initHeroSlider = () => {
     const heroSwiper = new Swiper('.hero-slider', {
@@ -215,7 +216,9 @@ const initSetCatalogSections = () => {
     const catalogSection = document.querySelector('[data-name="catalog-set-section"]');
     const defaultSectionParent = document.querySelector('[data-name="default-sections-parent"]');
     const additionalSectionParent = document.querySelector('[data-name="additional-sections-parent"]');
+    const anchorLinks = document.querySelectorAll('[data-name="link-anchor"]');
     const stulymButton = document.querySelector('[data-button="stylum"]');
+    const pagination = document.querySelector('.js--preview');
     if(openButtons.length) {
         const openCatalogSections = () => {
             catalogSection.classList.add(CLASSES.ACTIVE);
@@ -226,9 +229,16 @@ const initSetCatalogSections = () => {
             catalogSection.classList.remove(CLASSES.ACTIVE);
             defaultSectionParent.classList.remove(CLASSES.HIDDEN)
             stulymButton.classList.remove(CLASSES.ACTIVE);
+            anchorLinks.forEach(link => link.classList.add(CLASSES.SHOW))
             additionalSectionParent.classList.add(CLASSES.ACTIVE);
+            pagination.classList.add(CLASSES.POSITION);
             counter = 0;
-
+            const hideLinkAnchor = () => {
+                if (window.scrollY > 0){
+                    anchorLinks[0].classList.add(CLASSES.HIDDEN);
+                }
+            };
+            window.addEventListener('scroll', hideLinkAnchor)
             initialSliders()
         };
 
@@ -348,11 +358,13 @@ const openCatalogOrSliderByModifyButton = () => {
         const sliderSetParent = document.querySelector('[data-name="slider-set"]').parentNode;
         const videoParent = document.querySelector('[data-name="video-wrapper"]');
         const interactiveParent = document.querySelector('[data-name="preview-360"]').parentNode;
+        const anchorLinks = document.querySelectorAll('[data-name="link-anchor"]');
 
         setSection.classList.remove(CLASSES.ACTIVE);
         stulymButton.classList.remove(CLASSES.ACTIVE);
         defaultSectionsParent.classList.remove(CLASSES.HIDDEN);
         defaultSectionsParent.classList.add(CLASSES.SHOW);
+        anchorLinks.forEach(link => link.classList.add(CLASSES.SHOW));
         previewSlider.classList.remove(CLASSES.HIDDEN);
         previewSlider.classList.remove(CLASSES.NONE);
         setTimeout(() => {
@@ -365,8 +377,13 @@ const openCatalogOrSliderByModifyButton = () => {
             sliderSetParent.classList.add('js--loading');
             videoParent.classList.add('js--loading');
             interactiveParent.classList.add('js--loading');
-        }, 1500)
-
+        }, 1500);
+        const hideLinkAnchor = () => {
+            if (window.scrollY > 0){
+                anchorLinks[0].classList.add(CLASSES.HIDDEN);
+            }
+        };
+        window.addEventListener('scroll', hideLinkAnchor)
         initialSliders();
     };
     stulymButton?.addEventListener('click', closeCatalogSections);
@@ -486,7 +503,7 @@ window.addEventListener("resize", initMobilePreview)
 
 const setLinkAnchor = (event) => {
     const link = event.target.closest('[data-name="link-anchor"]');
-    link.classList.add(CLASSES.HIDDEN)
+    link.classList.add(CLASSES.NONE)
 };
 const initLinkAnchor = () => {
     const links = document.querySelectorAll('[data-name="link-anchor"]');
