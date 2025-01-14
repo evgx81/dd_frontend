@@ -63,7 +63,7 @@ data-image-list-y={$got_result_sequences
 <!-- {`video-wrapper video-wrapper--visible${$got_result_sequences ? " js--loading" : ""}`} -->
 <section class="section section-pad-top section-index-2 set-card-360">
     <div class="container">
-        <div class="video-wrapper video-wrapper--visible">
+        <div class="video-wrapper video-wrapper--visible" id="interactive-photos">
             <div
                 class="cloudimage-360 formats__set-free-img-main"
                 id="preview-360"
