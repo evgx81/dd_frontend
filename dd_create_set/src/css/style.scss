@@ -4,6 +4,7 @@
 html {
   scrollbar-color: var(--purpurno-krasnyy) var(--color-background-default);
   scrollbar-width: thin;
+  scroll-behavior: smooth;
 }
 
 body {

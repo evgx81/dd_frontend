@@ -3,7 +3,8 @@ const CLASSES = {
     HIDDEN: 'js--hidden',
     SCROLLED : 'js--scrolled',
     ACTIVE: 'js--active',
-    NONE: 'js--none'
+    NONE: 'js--none',
+    SHOW: 'js--show'
 };
 const initHeroSlider = () => {
     const heroSwiper = new Swiper('.hero-slider', {
@@ -20,6 +21,8 @@ const initialSliders = () => {
     const buildSwiperSlider = (swiperSliderElement) => {
         const swiperSlider = swiperSliderElement;
         const swiperPagination = swiperSlider.querySelector('.swiper-pagination');
+        const swiperArrowNext = swiperSlider.querySelector('.arrow--next');
+        const swiperArrowPrev = swiperSlider.querySelector('.arrow--prev');
         if (!swiperSlider) return;
 
         const currentSwiper = new Swiper(swiperSlider, {
@@ -30,20 +33,36 @@ const initialSliders = () => {
             pagination: {
                 el: swiperPagination,
                 clickable: true
+            },
+            navigation: {
+                nextEl: swiperArrowNext,
+                prevEl: swiperArrowPrev,
             }
         });
 
-        swiperSlider.addEventListener('mousemove', (event) => {
-            const rect = swiperSlider.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const width = rect.width;
+        if(swiperSlider.dataset.name === "slider-set" || swiperSlider.dataset.name === "slider-set-product") {
+            const pagination = swiperSlider.querySelector('.swiper-pagination');
+            pagination.classList.add('js--preview');
+            const paginationItems = pagination.querySelectorAll('.swiper-pagination-bullet');
+            const slides = swiperSlider.querySelectorAll('.swiper-slide');
+            paginationItems.forEach((item, index) => {
+                const image = document.createElement("img");
+                image.classList.add('pagination-preview__image');
+                image.src = slides[index].src;
+                item.insertAdjacentElement('beforeend', image);
+            })
+        } else {
+            swiperSlider.addEventListener('mousemove', (event) => {
+                const rect = swiperSlider.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const width = rect.width;
 
-            const numberOfSlides = currentSwiper.slides.length;
-            const partWidth = width / numberOfSlides;
-            const slideIndex = Math.floor(x / partWidth);
-
-            currentSwiper.slideTo(slideIndex);
-        });
+                const numberOfSlides = currentSwiper.slides.length;
+                const partWidth = width / numberOfSlides;
+                const slideIndex = Math.floor(x / partWidth);
+                currentSwiper.slideTo(slideIndex);
+            });
+        }
     }
 
     const slidersParents = document.querySelectorAll('[data-name="slider-parent"]');
@@ -233,6 +252,10 @@ const initSetButtonText = () => {
         const interactivePreloader = document.querySelector('[data-name="preview-360"]');
         const interactivePreloaderText = interactivePreloader.querySelector('[data-name-preview-text-default]');
         const sliderSet = document.querySelector('[data-name="slider-set"]');
+        const sliderSetProduct = document.querySelector('[data-name="slider-set-product"]');
+        const sliderSetPagination = sliderSet.querySelector('.swiper-pagination');
+        const sliderSetProductPagination = sliderSetProduct?.querySelector('.swiper-pagination');
+
         const setButtonText = (event) => {
             const button = event.target.closest('[data-name="button-adding-set"]');
             button.classList.toggle(CLASSES.ACTIVE);
@@ -243,6 +266,8 @@ const initSetButtonText = () => {
             if (counter) {
                 stulymButton.classList.add(CLASSES.ACTIVE);
                 sliderPreloader.classList.add(CLASSES.HIDDEN);
+                sliderSetPagination.classList.add(CLASSES.ACTIVE);
+                sliderSetProductPagination?.classList.add(CLASSES.ACTIVE);
                 videoPreloader.classList.add(CLASSES.HIDDEN);
                 videoPreloader.classList.remove(CLASSES.NONE);
                 interactivePreloader.classList.remove(CLASSES.NONE);
@@ -303,6 +328,7 @@ const openCatalogOrSliderByModifyButton = () => {
     const previewSlider = document.querySelector('[data-name="preview-slider"]');
     const setSection = document.querySelector('[data-name="catalog-set-section"]');
     const defaultSectionsParent = document.querySelector('[data-name="default-sections-parent"]');
+    const sliderSet = document.querySelector('[data-name="slider-set"]');
     const sliderSetProduct = document.querySelector('[data-name="slider-set-product"]');
     const stulymButton = document.querySelector('[data-button="stylum"]');
     const onClickModifyButton = (event) => {
@@ -312,6 +338,7 @@ const openCatalogOrSliderByModifyButton = () => {
             defaultSectionsParent.classList.add(CLASSES.HIDDEN);
             setTimeout(() => { previewSlider.classList.add(CLASSES.HIDDEN);}, 100)
             sliderSetProduct.classList.add(CLASSES.ACTIVE);
+            sliderSet.classList.add('js--pagination-hidden');
         }
     };
 
@@ -325,6 +352,7 @@ const openCatalogOrSliderByModifyButton = () => {
         setSection.classList.remove(CLASSES.ACTIVE);
         stulymButton.classList.remove(CLASSES.ACTIVE);
         defaultSectionsParent.classList.remove(CLASSES.HIDDEN);
+        defaultSectionsParent.classList.add(CLASSES.SHOW);
         previewSlider.classList.remove(CLASSES.HIDDEN);
         previewSlider.classList.remove(CLASSES.NONE);
         setTimeout(() => {
@@ -455,3 +483,15 @@ const initMobilePreview = () => {
 };
 initMobilePreview();
 window.addEventListener("resize", initMobilePreview)
+
+const setLinkAnchor = (event) => {
+    const link = event.target.closest('[data-name="link-anchor"]');
+    link.classList.add(CLASSES.HIDDEN)
+};
+const initLinkAnchor = () => {
+    const links = document.querySelectorAll('[data-name="link-anchor"]');
+    links.forEach((link) => {
+        link.addEventListener('click', setLinkAnchor);
+    });
+};
+initLinkAnchor();
