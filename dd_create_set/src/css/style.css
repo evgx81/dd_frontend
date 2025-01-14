@@ -2173,9 +2173,16 @@ input:checked + .dropdown-checkbox .dropdown-checkbox__mark {
 
 .catalogs__set-free-img-wrapper.js--loading .swiper-pagination {
   transform: translateY(calc(-100% - 2rem));
+  transition-delay: 0ms;
 }
 .catalogs__set-free-img-wrapper.js--loading .swiper-pagination .pagination-preview__image {
   box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.3);
 }
 
 /*# sourceMappingURL=style.css.map */
+.link-anchor.js--hidden, .link-anchor.js--none {
+  display: none;
+}
+.catalogs__set-free-img-wrapper .swiper-pagination.js--position {
+  transform: translateY(calc(-100% - 2rem));
+}
