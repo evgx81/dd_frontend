@@ -1248,7 +1248,7 @@
 <?php include "inc/inc_mobile-preview.php"; ?>
 <?php include "inc/inc_button-top.php"; ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js" integrity="sha512-Ysw1DcK1P+uYLqprEAzNQJP+J4hTx4t/3X2nbVwszao8wD+9afLjBQYjz7Uk4ADP+Er++mJoScI42ueGtQOzEA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="./scripts/index.js"></script>
+<script src="../../../projects/dd_frontend/index.js"></script>
 <script src="./scripts/header.js"></script>
 </body>
 

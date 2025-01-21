@@ -130,7 +130,7 @@
                         <ul class="catalog-list__inner">
                             <li data-name="open-buttons" class="catalog-list-item-wrapper">
                                 <div class="catalog-list-item">
-                                    <img src="images/set-card/01.png" alt="furniture" class="catalog-list-item__img">
+                                    <img src="images/new-image.png" alt="furniture" class="catalog-list-item__img">
                                     <div class="catalog-list-item__info">
                                         <div class="catalog-list-item__subtitle">The Idea</div>
                                         <h4 class="catalog-list-item__title">Sofa Case</h4>
@@ -146,7 +146,7 @@
                             </li>
                             <li data-name="open-buttons" class="catalog-list-item-wrapper">
                                 <div class="catalog-list-item">
-                                    <img src="images/set-card/02.png" alt="furniture" class="catalog-list-item__img">
+                                    <img src="images/new-image.png" alt="furniture" class="catalog-list-item__img">
                                     <div class="catalog-list-item__info">
                                         <div class="catalog-list-item__subtitle">The Idea</div>
                                         <h4 class="catalog-list-item__title">Sofa Case</h4>
@@ -163,7 +163,7 @@
                             </li>
                             <li data-name="open-buttons" class="catalog-list-item-wrapper">
                                 <div class="catalog-list-item">
-                                    <img src="images/set-card/03.png" alt="furniture" class="catalog-list-item__img">
+                                    <img src="images/new-image.png" alt="furniture" class="catalog-list-item__img">
                                     <div class="catalog-list-item__info">
                                         <div class="catalog-list-item__subtitle">The Idea</div>
                                         <h4 class="catalog-list-item__title">Sofa Case</h4>
@@ -1552,7 +1552,7 @@
 <?php include "inc/inc_button-top.php"; ?>
 <script src="https://scaleflex.cloudimg.io/v7/plugins/js-cloudimage-360-view/latest/js-cloudimage-360-view.min.js?func=proxy"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js" integrity="sha512-Ysw1DcK1P+uYLqprEAzNQJP+J4hTx4t/3X2nbVwszao8wD+9afLjBQYjz7Uk4ADP+Er++mJoScI42ueGtQOzEA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="./scripts/index.js"></script>
+<script src="../../../projects/dd_frontend/index.js"></script>
 <script src="./scripts/header.js"></script>
 </body>
 

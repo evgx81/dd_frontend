@@ -1,4 +1,4 @@
-@import './variables.css';
+@import '../../OSPanel/domains/dat-stylum/css/variables.css';
 html {
   scrollbar-color: var(--purpurno-krasnyy) var(--color-background-default);
   scrollbar-width: thin;
@@ -873,21 +873,20 @@ iframe {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  column-gap: 1.25rem;
   width: 100%;
   background-color: #FFFFFF;
   cursor: pointer;
   border-radius: 0.125rem;
-  min-height: 4.65rem;
-  padding: 0.0625rem 1.25rem;
+  min-height: 4.525rem;
+  padding: 0.0625rem 1.25rem 0.0625rem 0;
   position: relative;
   user-select: none;
 }
 .catalog-list-item__img {
   max-height: 100%;
-  max-height: 4.6rem;
-  max-width: 4.6rem;
-  object-fit: cover;
+  max-height: 4.525rem;
+  width: 7.5rem;
+  object-fit: contain;
   object-position: center;
 }
 .catalog-list-item__info {
@@ -896,6 +895,7 @@ iframe {
   padding: 0.5rem 0;
   row-gap: 0.625rem;
   margin-right: auto;
+  padding-right: 1.25rem;
 }
 .catalog-list-item__subtitle {
   font-weight: 400;
@@ -1572,17 +1572,19 @@ iframe {
   column-gap: 0.625rem;
 }
 
-.catalog-list-item-wrapper.js--active .catalog-list-item {
-  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.3);
+.catalog-list-item {
+  border: 1px solid transparent;
 }
-.catalog-list-item-wrapper.js--active .catalog-list-item::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 100%;
-  bottom: 0;
-  width: 0.25rem;
-  background: var(--color-light);
+
+.catalog-list-item:hover {
+  border: 1px solid #B1BAC7;
+}
+
+.catalog-list-item-wrapper.js--active .catalog-list-item {
+  transition: 0.3s all;
+}
+.catalog-list-item-wrapper.js--active .catalog-list-item {
+  border: 1px solid #B1BAC7;
 }
 .catalog-list-item-wrapper.js--active .configure__button {
   box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.3);
@@ -2429,6 +2431,15 @@ input:checked + .dropdown-checkbox .dropdown-checkbox__mark {
 .render-progressbar__item.js--active .render-progressbar__line {
   clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
 }
+.render-progressbar__item.js--active-25 .render-progressbar__line {
+  clip-path: polygon(0 0, 25% 0, 25% 100%, 0% 100%);
+}
+.render-progressbar__item.js--active-50 .render-progressbar__line {
+  clip-path: polygon(0 0, 50% 0, 50% 100%, 0% 100%);
+}
+.render-progressbar__item.js--active-75 .render-progressbar__line {
+  clip-path: polygon(0 0, 75% 0, 75% 100%, 0% 100%);
+}
 .render-progressbar__item.js--active .render-progressbar__text {
   color: var(--temno-seryy);
 }
@@ -2443,6 +2454,10 @@ input:checked + .dropdown-checkbox .dropdown-checkbox__mark {
   margin-top: auto;
 }
 .create-set__catalog .catalogs__set-free-img-wrapper:hover {
+  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.3);
+}
+
+.catalogs__set-free-img-wrapper:hover {
   box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.3);
 }
 
