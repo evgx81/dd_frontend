@@ -738,14 +738,14 @@ button, a, input {
   padding-right: 0;
 }
 
-.catalogs__set-free-img-wrapper:hover {
+.catalog-sliders:not(.catalog-slider--settings) .catalogs__set-free-img-wrapper:hover {
   z-index: 2;
 }
-.catalogs__set-free-img-wrapper:hover .set-options {
+.catalog-sliders:not(.catalog-slider--settings) .catalogs__set-free-img-wrapper:hover .set-options {
   opacity: 1;
   pointer-events: visible;
 }
-.catalogs__set-free-img-wrapper:hover .catalogs__set-free-img {
+.catalog-sliders:not(.catalog-slider--settings) .catalogs__set-free-img-wrapper:hover .catalogs__set-free-img {
   box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.3);
   clip-path: inset(-5px -5px 0px -5px);
 }
