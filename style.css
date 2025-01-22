@@ -1,12 +1,4 @@
-:root {
-  --font-family: "Roboto", sans-serif;
-  --second-family: "Formular", sans-serif;
-  --color-light: #f0f0f0;
-  --color-white: #FFFFFF;
-  --temno-seryy: #1F2933;
-  --svetlo-seryy: #B1BAC7;
-  --purpurno-krasnyy: #D83555;
-}
+@import './variables.css';
 html {
   scrollbar-color: var(--purpurno-krasnyy);
   scrollbar-width: thin;
@@ -747,7 +739,7 @@ button, a, input {
 }
 .catalog-sliders:not(.catalog-slider--settings) .catalogs__set-free-img-wrapper:hover .catalogs__set-free-img {
   box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.3);
-  clip-path: inset(-5px -5px 0px -5px);
+  clip-path: inset(-5px -5px 1px -5px);
 }
 
 .label {
