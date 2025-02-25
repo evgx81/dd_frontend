@@ -2503,5 +2503,11 @@ input:checked + .dropdown-checkbox .dropdown-checkbox__mark {
 .set-card-hero .catalog-list-item {
   padding: 0.0375rem 1.25rem 0.0375rem 0;
 }
-
-/*# sourceMappingURL=style.css.map */
+.set-options__inner.set-options__inner--six{
+  align-items: flex-start;
+  height: 100%;
+  min-height: 8rem;
+}
+.set-options__inner.set-options__inner--six .set-options__box{
+  margin-top: auto;
+}
