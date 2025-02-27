@@ -607,7 +607,7 @@ button, a, input {
   border-bottom-left-radius: 0.2rem;
   border-bottom-right-radius: 0.2rem;
   box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.3);
-  margin-top: -0.25rem;
+  margin-top: -0.2rem;
 }
 .set-options__wrapper {
   min-height: 16.6rem;
@@ -2089,7 +2089,7 @@ input:checked + .dropdown-checkbox .dropdown-checkbox__mark {
 
 .catalog-sliders.catalog-sliders--three-set-reverse .set-options__wrapper,
 .catalog-sliders.catalog-sliders--three-set .set-options__wrapper {
-  min-height: 16.35rem;
+  min-height: 16.55rem;
 }
 
 .catalog-sliders.catalog-sliders--three-set-reverse .catalogs__set-free-img-wrapper:first-child .set-options__wrapper {
