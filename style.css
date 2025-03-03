@@ -2511,3 +2511,6 @@ input:checked + .dropdown-checkbox .dropdown-checkbox__mark {
 .set-options__inner.set-options__inner--six .set-options__box{
   margin-top: auto;
 }
+.catalog-sliders.catalog-sliders--three-set .catalogs__set-free-img-wrapper:first-child .set-options {
+  margin-top: -0.4rem;
+}
