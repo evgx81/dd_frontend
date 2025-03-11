@@ -61,9 +61,13 @@ const initialSliders = () => {
                 const numberOfSlides = currentSwiper.slides.length;
                 const partWidth = width / numberOfSlides;
                 const slideIndex = Math.floor(x / partWidth);
+
                 currentSwiper.slideTo(slideIndex);
             });
+            swiperSlider.addEventListener('mouseleave', () => currentSwiper.slideTo(0));
         }
+
+
     }
 
     const slidersParents = document.querySelectorAll('[data-name="slider-parent"]');
@@ -209,6 +213,24 @@ const initPopup = () => {
 initPopup();
 // POPUP END
 
+const initRender = () => {
+    const renderProgressbar = document.querySelector('[data-name="render-progressbar"]');
+    const renderItems = renderProgressbar.querySelectorAll('[data-name="render-item"]');
+
+    renderProgressbar.classList.add(CLASSES.ACTIVE);
+    const time = 1000;
+    const resultTime = time * (renderItems.length + 2) ;
+    renderItems.forEach((item, index) => {
+        const currentTime = time * (index + 1);
+        setTimeout(() => {
+            item.classList.add(CLASSES.ACTIVE);
+        }, currentTime)
+    })
+    setTimeout(() => {
+        renderProgressbar.classList.remove(CLASSES.ACTIVE);
+    }, resultTime)
+}
+
 // CATALOG SET (CC6) START
 let counter = 0;
 const initSetCatalogSections = () => {
@@ -240,6 +262,7 @@ const initSetCatalogSections = () => {
             };
             window.addEventListener('scroll', hideLinkAnchor)
             initialSliders()
+            initRender();
         };
 
         stulymButton.addEventListener('click', closeCatalogSections)
@@ -265,6 +288,8 @@ const initSetButtonText = () => {
         const sliderSetProduct = document.querySelector('[data-name="slider-set-product"]');
         const sliderSetPagination = sliderSet.querySelector('.swiper-pagination');
         const sliderSetProductPagination = sliderSetProduct?.querySelector('.swiper-pagination');
+
+
 
         const setButtonText = (event) => {
             const button = event.target.closest('[data-name="button-adding-set"]');
@@ -364,7 +389,7 @@ const openCatalogOrSliderByModifyButton = () => {
         stulymButton.classList.remove(CLASSES.ACTIVE);
         defaultSectionsParent.classList.remove(CLASSES.HIDDEN);
         defaultSectionsParent.classList.add(CLASSES.SHOW);
-        anchorLinks.forEach(link => link.classList.add(CLASSES.SHOW));
+        anchorLinks.forEach(link => link.classList.add(CLASSES.SHOW))
         previewSlider.classList.remove(CLASSES.HIDDEN);
         previewSlider.classList.remove(CLASSES.NONE);
         setTimeout(() => {
@@ -377,14 +402,15 @@ const openCatalogOrSliderByModifyButton = () => {
             sliderSetParent.classList.add('js--loading');
             videoParent.classList.add('js--loading');
             interactiveParent.classList.add('js--loading');
-        }, 1500);
+        }, 1500)
         const hideLinkAnchor = () => {
             if (window.scrollY > 0){
                 anchorLinks[0].classList.add(CLASSES.HIDDEN);
             }
         };
-        window.addEventListener('scroll', hideLinkAnchor)
+        window.addEventListener('scroll', hideLinkAnchor);
         initialSliders();
+        initRender();
     };
     stulymButton?.addEventListener('click', closeCatalogSections);
 };
@@ -499,7 +525,8 @@ const initMobilePreview = () => {
   }
 };
 initMobilePreview();
-window.addEventListener("resize", initMobilePreview)
+window.addEventListener("resize", initMobilePreview);
+
 
 const setLinkAnchor = (event) => {
     const link = event.target.closest('[data-name="link-anchor"]');
@@ -512,3 +539,14 @@ const initLinkAnchor = () => {
     });
 };
 initLinkAnchor();
+
+const buttonTop = document.querySelector('[data-name="button-top"]');
+const setButtonTop = () => {
+    if (window.scrollY > 0){
+        buttonTop.classList.add(CLASSES.ACTIVE);
+    } else {
+        buttonTop.classList.remove(CLASSES.ACTIVE);
+    }
+};
+window.addEventListener('scroll', setButtonTop);
+

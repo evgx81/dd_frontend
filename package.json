@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "svelte-video-player": "^1.2.5"
+  }
+}
