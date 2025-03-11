@@ -4,11 +4,15 @@
 
     export let sets_with_images;
 
+    /**
+     *
+     * @type {number}
+     */
+    export let set_with_images_order_num;
+
     const initialSliders = () => {
         const buildSwiperSlider = (swiperSliderElement) => {
             const swiperSlider = swiperSliderElement;
-            const swiperPagination =
-                swiperSlider.querySelector(".swiper-pagination");
             if (!swiperSlider) return;
 
             const currentSwiper = new Swiper(swiperSlider, {
@@ -17,7 +21,7 @@
                     crossFade: true,
                 },
                 pagination: {
-                    el: swiperPagination,
+                    el: swiperSlider.querySelector(".swiper-pagination"),
                     clickable: true,
                 },
             });
@@ -33,8 +37,14 @@
 
                 currentSwiper.slideTo(slideIndex);
             });
+
+             // В момент ухода курсора со слайдера, отображаем первое изображение на слайдере
+            swiperSlider.addEventListener("mouseleave", () =>
+                currentSwiper.slideTo(0),
+            );
         };
 
+        // Находим все слайдеры с товарами и сетами, похожими на данный товар и инициализируем их
         const slidersParents = document.querySelectorAll(
             '[data-name="slider-parent"]',
         );
@@ -47,25 +57,34 @@
         });
     };
 
+    /**
+     * Отмечает перелистываются ли слайдеры с сетами
+     */
+    let sliders_initialized = false;
     afterUpdate(() => {
-        if (sets_with_images.length > 0) {
+        // Если получены сеты с изображениями, то инициализируем перелистывание изображений сетов
+        if (sets_with_images.length > 0 && !sliders_initialized) {
             initialSliders();
+            sliders_initialized = true;
         }
+
+        console.log(sets_with_images);
     });
 </script>
 
-<div class="container">
+<!-- <div class="container">
     <div
         class={`${sets_with_images.length == 6 ? "catalog-sliders catalog-sliders--six-set" : "catalog-sliders catalog-sliders--three-set-reverse"}`}
         data-name="slider-parent"
-    >
-        {#each sets_with_images as set_with_images, idx}
-            <ProductSet
-                curr_set={set_with_images}
-                curr_set_num={idx}
-                sets_with_images_length={sets_with_images.length}
-                on:message
-            />
-        {/each}
-    </div>
-</div>
+    > -->
+{#each sets_with_images as set_with_images, idx}
+    <ProductSet
+        curr_set={set_with_images}
+        curr_set_num={idx + 1}
+        sets_with_images_length={sets_with_images.length}
+        {set_with_images_order_num}
+        on:message
+    />
+{/each}
+<!-- </div>
+</div> -->

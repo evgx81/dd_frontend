@@ -1,10 +1,16 @@
 <script>
-    import { createEventDispatcher } from "svelte";
+    import { afterUpdate, createEventDispatcher, onMount } from "svelte";
     import { is_authenticated } from "./stores";
 
     export let curr_set;
     export let curr_set_num;
     export let sets_with_images_length;
+
+    /**
+     *
+     * @type {number}
+     */
+    export let set_with_images_order_num;
 
     const dispatch = createEventDispatcher();
 
@@ -17,9 +23,13 @@
         dispatch("message", {
             set_id: set_id,
             is_set_liked: is_set_liked,
-            is_set_with_images: true,
+            // is_set_with_images: true,
         });
     }
+
+    // onMount(() => {
+    //     console.log(curr_set.id, curr_set.is_liked);
+    // });
 </script>
 
 <div id={curr_set.id} class="catalogs__set-free-img-wrapper">
@@ -36,9 +46,6 @@
                 class="swiper-pagination-bullet swiper-pagination-bullet-active"
                 aria-current="true"
             ></span>
-            {#each curr_set.images as _}
-                <span class="swiper-pagination-bullet"></span>
-            {/each}
         </div>
         <span
             class="swiper-notification"
@@ -47,38 +54,70 @@
         ></span>
     </div>
     <div class="set-options" data-name="set-options">
-        <div class="set-options__wrapper">
+        <div
+            class={`${sets_with_images_length === 3 && ((set_with_images_order_num === 2 && curr_set_num === 3) || (set_with_images_order_num === 4 && curr_set_num === 1)) ? "set-options__wrapper set-options__wrapper--height-min" : "set-options__wrapper"}`}
+        >
             <div
-                class={`${sets_with_images_length === 3 && curr_set_num === 0 ? "set-options__inner set-options__inner--six" : "set-options__inner set-options__inner--three"} `}
+                class={`${sets_with_images_length === 3 && ((set_with_images_order_num === 2 && curr_set_num === 3) || (set_with_images_order_num === 4 && curr_set_num === 1)) ? "set-options__inner set-options__inner--six" : "set-options__inner set-options__inner--three"}`}
             >
                 {#each curr_set.products as product}
                     <div class="set-options__item">
+                        <!-- svelte-ignore a11y_img_redundant_alt -->
                         <img
                             src={product.image}
                             alt="image"
                             class="set-options__img"
-                            width="45px"
-                            height="45px"
                         />
-                        <div class="set-options__price">
-                            $ {product.price}
-                        </div>
                     </div>
                 {/each}
-            </div>
-            <div class="set-options__footer">
-                <button class="set-options__button button--accent"
-                    >Modify</button
-                >
-                <button class="set-options__button button--dark"
-                    >See more</button
-                >
-                <div class="set-options__text-wrapper">
-                    <div class="set-options__text">
-                        $ {curr_set.total_price}
+                {#if sets_with_images_length === 3 && ((set_with_images_order_num === 2 && curr_set_num === 3) || (set_with_images_order_num === 4 && curr_set_num === 1))}
+                    <div class="set-options__box">
+                        <div
+                            class="catalog-price-total catalog-price-total--height"
+                        >
+                            Total <span class="bold">
+                                <span data-name="item-count">
+                                    {curr_set.products.length}
+                                </span> items</span
+                            >
+                            for :
+                            <span class="bold size" data-name="total-price"
+                                >$ {curr_set.total_price}</span
+                            >
+                        </div>
+                        <a
+                            href={`/set_card/${curr_set.id}`}
+                            class="set-options__button button--dark"
+                        >
+                            See more
+                        </a>
                     </div>
-                </div>
+                {/if}
             </div>
+
+            {#if !(sets_with_images_length === 3 && ((set_with_images_order_num === 2 && curr_set_num === 3) || (set_with_images_order_num === 4 && curr_set_num === 1)))}
+                <div class="set-options__footer">
+                    <div
+                        class="catalog-price-total catalog-price-total--height"
+                    >
+                        Total <span class="bold">
+                            <span data-name="item-count">
+                                {curr_set.products.length}
+                            </span> items</span
+                        >
+                        for :
+                        <span class="bold size" data-name="total-price"
+                            >$ {curr_set.total_price}</span
+                        >
+                    </div>
+                    <a
+                        href={`/set_card/${curr_set.id}`}
+                        class="set-options__button button--dark"
+                    >
+                        See more
+                    </a>
+                </div>
+            {/if}
         </div>
     </div>
     <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -86,7 +125,7 @@
     <!-- Если пользователь не авторизован, то не выводим сердечки у сетов -->
     {#if $is_authenticated}
         <div
-            class={`like ${curr_set.is_liked ? "js--active" : ""}`}
+            class={`like${curr_set.is_liked ? " js--active" : ""}`}
             data-name="like"
             on:click={() => handleLikeClick(curr_set.id, curr_set.is_liked)}
         >

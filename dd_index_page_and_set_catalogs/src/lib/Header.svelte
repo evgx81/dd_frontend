@@ -13,7 +13,7 @@
         try {
             const resp = await fetch("/users/dj-rest-auth/user/", {
                 headers: {
-                    Authorization: token,
+                    Authorization: `Token ${token}`,
                 },
             });
             if (!resp.ok) {
@@ -43,6 +43,7 @@
 <header data-component-id="the-header">
     <div class="container">
         <div class="header">
+            <!-- svelte-ignore a11y_consider_explicit_label -->
             <a href="/" class="header__link">
                 <div class="header__logo">
                     <svg
@@ -84,7 +85,13 @@
                 </div>
             </a>
             <Menu />
-            <div class="header__search">
+            <form
+                name="header_search"
+                class="header__search"
+                action="/search_results/"
+                data-name="form"
+                method="GET"
+            >
                 <div class="header-search__icon">
                     <svg
                         width="14"
@@ -103,9 +110,10 @@
                     type="text"
                     class="header-search__input"
                     placeholder="Search"
-                    data-name="search-input"
+                    name="q"
                 />
-            </div>
+                <input type="submit" style="display: none" />
+            </form>
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div class="header-aside">
                 <!-- <a class="header-aside__item" href="balance.php">

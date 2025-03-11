@@ -3,21 +3,27 @@ import { derived, writable } from "svelte/store";
 
 /**
 * Показывает, является ли текущая страница главной
-* @type {import("svelte/store").Readable<boolean>}
+* @type {import("svelte/store").Writable<boolean>}
 */
 export const is_index_page = writable(true);
 
-/**
- * Хранит о сетах товаров с видео
- * @type {import("svelte/store").Writable<Array.<{id: string, video: string, total_price: number, products: Array.<{image:string, price: number}>, is_liked: boolean}>>}
- */
-export const sets_with_videos = writable([]);
+// /**
+//  * Хранит о сетах товаров с видео
+//  * @type {import("svelte/store").Writable<Array.<{id: string, video: string, poster_image: string, total_price: number, products: Array.<{image:string}>, is_liked: boolean}>>}
+//  */
+// export const sets_with_videos = writable([]);
+
+// /**
+//  * Хранит о сетах товаров с изображениями
+//  * @type {import("svelte/store").Writable<Array.<{id: string, images: Array.<string>, total_price: number, products: Array.<{image:string}>, is_liked: boolean}>>}
+//  */
+// export const sets_with_images = writable([]);
 
 /**
  * Хранит о сетах товаров с изображениями
- * @type {import("svelte/store").Writable<Array.<{id: string, images: Array.<string>, total_price: number, products: Array.<{image:string, price: number}>, is_liked: boolean}>>}
+ * @type {import("svelte/store").Writable<Array.<{id: string, video: string, poster_image: string, images: Array.<string>, total_price: number, products: Array.<{image:string}>, is_liked: boolean}>>}
  */
-export const sets_with_images = writable([]);
+export const product_sets = writable([]);
 
 /**
  * Хранит данные о типах сета в хедере
@@ -44,13 +50,13 @@ export const is_authenticated = derived(user_data, ($user_data) => {
  * Хранит данные о заголовке каталога товаров
  * @type {import("svelte/store").Writable<{title: string}>}
  */
-export const catalog_title = writable({title: ""});
+export const catalog_title = writable({ title: "" });
 
 /**
 * Количество сетов лайкнутых пользователем
 * @type {import("svelte/store").Writable<{number_of_favourite_sets: number}>}
 */
-export const number_of_favourite_sets_data = writable({number_of_favourite_sets: 0});
+export const number_of_favourite_sets_data = writable({ number_of_favourite_sets: 0 });
 
 /**
  * Получает значение ключа из куки

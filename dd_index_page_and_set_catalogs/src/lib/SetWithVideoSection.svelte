@@ -15,19 +15,21 @@
         dispatch("message", {
             set_id: set_id,
             is_set_liked: is_set_liked,
-            is_set_with_images: false,
+            // is_set_with_images: false,
         });
     }
 
     /**
      * Признак, того что видео загрузилось и готово к проигрыванию
      */
-    let ready_to_play = false;
-
+    // let ready_to_play = false;
 </script>
 
 <div class="container">
     <div class="video-wrapper" data-name="video-wrapper">
+        <!-- oncanplay={() => {
+                ready_to_play = true;
+            }} -->
         <video
             id="preview-video"
             preload="none"
@@ -38,9 +40,7 @@
             muted
             loop
             style="pointer-events: none;"
-            oncanplay={() => {
-                ready_to_play = true;
-            }}
+            poster={set_with_video.poster_image}
         >
             <source
                 id="preview-video-data"
@@ -49,7 +49,7 @@
             />
         </video>
 
-        {#if !ready_to_play}
+        <!-- {#if !ready_to_play}
             <div
                 class="slider-preview js--hidden"
                 style="width: 1340px; height: 837px;"
@@ -251,79 +251,91 @@
                             />
                         </svg>
                     </div>
-                    <!-- <div
-                        class="slider-preview__text"
-                        data-name-preview-text-default="Here will be a video"
-                        data-name-preview-text-result="Render in progress"
-                    >
-                        Render in progress
-                    </div> -->
-                </div>
-            </div>
-        {:else}
-            <div class="set-options" data-name="set-options">
-                <div class="set-options__wrapper">
-                    <div class="set-options__inner set-options__inner--nine">
-                        {#each set_with_video.products as product}
-                            <div class="set-options__item">
-                                <!-- svelte-ignore a11y_img_redundant_alt -->
-                                <img
-                                    src={product.image}
-                                    alt="image"
-                                    class="set-options__img"
-                                    width="45px"
-                                    height="45px"
-                                />
-                                <div class="set-options__price">
-                                    $ {product.price}
-                                </div>
-                            </div>
-                        {/each}
 
-                        <button class="set-options__button button--accent"
+                </div>
+            </div> 
+        {:else} -->
+        <div class="set-options" data-name="set-options">
+            <div class="set-options__wrapper">
+                <div class="set-options__inner set-options__inner--nine">
+                    {#each set_with_video.products as product}
+                        <div class="set-options__item">
+                            <!-- svelte-ignore a11y_img_redundant_alt -->
+                            <img
+                                src={product.image}
+                                alt="image"
+                                class="set-options__img"
+                            />
+                            <!-- <div class="set-options__price">
+                                $ {product.price}
+                            </div> -->
+                        </div>
+                    {/each}
+
+                    <!-- <button class="set-options__button button--accent"
                             >Modify</button
                         >
                         <button class="set-options__button button--dark"
                             >See more</button
+                        > -->
+
+                    <div
+                        class="catalog-price-total catalog-price-total--height"
+                    >
+                        Total <span class="bold">
+                            <span data-name="item-count">
+                                {set_with_video.products.length}
+                            </span> items</span
                         >
-                        <div class="set-options__text-wrapper">
-                            <div class="set-options__text">
-                                $ {set_with_video.total_price}
-                            </div>
-                        </div>
+                        for :
+                        <span class="bold size" data-name="total-price"
+                            >$ {set_with_video.total_price}</span
+                        >
                     </div>
+                    <a
+                        href={`/set_card/${set_with_video.id}`}
+                        class="set-options__button button--dark"
+                    >
+                        <!-- <button class="set-options__button button--dark"
+                            >See more</button
+                        > -->
+                        See more
+                    </a>
+                    <!-- <div class="set-options__text-wrapper">
+                        <div class="set-options__text">
+                            $ {set_with_video.total_price}
+                        </div>
+                    </div> -->
                 </div>
             </div>
-            <!-- svelte-ignore a11y_click_events_have_key_events -->
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
-            <!-- Если пользователь не авторизован, то не выводим сердечки у сетов -->
-            {#if $is_authenticated}
-                <div
-                    class={`like ${set_with_video.is_liked ? "js--active" : ""}`}
-                    data-name="like"
-                    onclick={() =>
-                        handleLikeClick(
-                            set_with_video.id,
-                            set_with_video.is_liked,
-                        )}
-                >
-                    <div class="like__inner">
-                        {#if set_with_video.is_liked}
-                            <img
-                                src="/static/images/like-active.svg"
-                                alt="like"
-                                class="like__img like__img--active"
-                            />
-                        {:else}
-                            <img
-                                src="/static/images/like.svg"
-                                alt="like"
-                                class="like__img"
-                            />
-                        {/if}
-                    </div>
+        </div>
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <!-- Если пользователь не авторизован, то не выводим сердечки у сетов -->
+        {#if $is_authenticated}
+            <div
+                class={`like${set_with_video.is_liked ? " js--active" : ""}`}
+                data-name="like"
+                onclick={() =>
+                    handleLikeClick(set_with_video.id, set_with_video.is_liked)}
+            >
+                <div class="like__inner">
+                    {#if set_with_video.is_liked}
+                        <img
+                            src="/static/images/like-active.svg"
+                            alt="like"
+                            class="like__img like__img--active"
+                        />
+                    {:else}
+                        <img
+                            src="/static/images/like.svg"
+                            alt="like"
+                            class="like__img"
+                        />
+                    {/if}
                 </div>
-            {/if}
+            </div>
         {/if}
+        <!-- {/if} -->
     </div>
 </div>
