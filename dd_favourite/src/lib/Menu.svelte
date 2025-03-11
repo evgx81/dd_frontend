@@ -1,6 +1,6 @@
 <script>
     import { onMount } from "svelte";
-    import { page_header_data } from "./store.js";
+    import { page_header_data } from "./stores.js";
 
     async function getPageHeaderData() {
         const resp = await fetch("/products/product_sets/header_set_types/");
@@ -13,8 +13,8 @@
         page_header_data.set(data);
     }
     
-    document.addEventListener("click", clickOutside, false);
-    function clickOutside(e) {
+    document.addEventListener("click", clickOnMenu, false);
+    function clickOnMenu(e) {
 
         let clicked_on_catalogs_menu = document
             .getElementById("menu-intro")

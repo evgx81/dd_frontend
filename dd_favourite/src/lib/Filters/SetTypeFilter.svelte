@@ -1,6 +1,6 @@
 <script>
-    import { onMount } from "svelte";
-    import { set_types, filters } from "../store";
+    import { afterUpdate, onMount } from "svelte";
+    import { filters, page_header_data, sets_filtered } from "../stores";
 
     const CLASSES = {
         OPEN: "js--open",
@@ -198,12 +198,14 @@
                 createFilterScrollbar(dropdown);
             });
         }
+    });
 
-        console.log($set_types);
+    afterUpdate(() => {
+        console.log($filters.created_by_me);
     });
 </script>
 
-<div class="dropdown--js">
+<div class="dropdown--js dropdown--type">
     <div class="dropdown__header--js">
         <button class="button button--light">Set's type</button>
     </div>
@@ -211,7 +213,7 @@
         class="dropdown__content dropdown__content--js"
         data-name="dropdown-scrollbar-parent"
     >
-        <div class="dropdown__body-wrapper">
+        <!-- <div class="dropdown__body-wrapper">
             <ul class="dropdown__body" data-name="list-wrapper">
                 {#each $set_types as set_type, idx}
                     <li class="dropdown__list-item">
@@ -244,6 +246,80 @@
                     </div>
                 </div>
             </div>
+        </div> -->
+        <div class="menu-content__inner">
+            {#each $page_header_data as set_type_data}
+                <div
+                    class={`${$filters.set_types.includes(set_type_data.id) ? "filtered-content__set__hovered" : "filtered-content__set"}`}
+                >
+                    <div class="menu-content__set-inner">
+                        <input
+                            id={set_type_data.id}
+                            type="checkbox"
+                            style="display:none"
+                            value={set_type_data.id}
+                            bind:group={$filters.set_types}
+                        />
+                        <label for={set_type_data.id}>
+                            <img
+                                src={set_type_data.image}
+                                alt=""
+                                class="menu-content__set-img"
+                            />
+                        </label>
+                    </div>
+                </div>
+            {/each}
+            <div
+                class={`${$filters.created_by_me ? "filtered-content__set__hovered" : "filtered-content__set"}`}
+            >
+                <label class="menu-content__set-inner" for="created_by_me">
+                    <div class="menu-content__set-inner">
+                        <input
+                            id="created_by_me"
+                            type="checkbox"
+                            style="display:none"
+                            bind:checked={$filters.created_by_me}
+                        />
+                        <span class="menu-content__text">Created by me</span>
+                    </div>
+                </label>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- <div class="dropdown__content dropdown__content--js">
+    <div class="menu-content__inner">
+        <a href="./set-card.php" class="menu-content__set">
+            <div class="menu-content__set-inner">
+                <img src="./images/menu/menu-1.jpg" alt="" class="menu-content__set-img">
+            </div>
+        </a>
+        <a href="./set-card.php" class="menu-content__set">
+            <div class="menu-content__set-inner">
+                <img src="./images/menu/menu-2.jpg" alt="" class="menu-content__set-img">
+            </div>
+        </a>
+        <a href="./set-card.php" class="menu-content__set">
+            <div class="menu-content__set-inner">
+                <img src="./images/menu/menu-3.jpg" alt="" class="menu-content__set-img">
+            </div>
+        </a>
+        <a href="./set-card.php" class="menu-content__set">
+            <div class="menu-content__set-inner">
+                <img src="./images/menu/menu-5.jpg" alt="" class="menu-content__set-img">
+            </div>
+        </a>
+        <a href="./set-card.php" class="menu-content__set">
+            <div class="menu-content__set-inner">
+                <img src="./images/menu/menu-4.jpg" alt="" class="menu-content__set-img">
+            </div>
+        </a>
+        <a href="./create-set.php" class="menu-content__set">
+            <div class="menu-content__set-inner">
+                <span class="menu-content__text">Created by me</span>
+            </div>
+        </a>
+    </div>
+</div> -->

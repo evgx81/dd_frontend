@@ -1,5 +1,5 @@
 <script>
-    import { filters } from "../store";
+    import { filters } from "../stores";
 </script>
 
 <div class="dropdown--js">

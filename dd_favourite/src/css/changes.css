@@ -1,0 +1,28 @@
+
+/* Стили, которые нужны для правильного отображения типов сетов в фильтре типов сетов */
+.dropdown--js.dropdown--type .filtered-content__set {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 2px solid transparent;
+    transition: 0.3s all;
+    padding-bottom: 0.625rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.dropdown--js.dropdown--type .filtered-content__set__hovered {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 2px solid transparent;
+    transition: 0.3s all;
+    padding-bottom: 0.625rem;
+    cursor: pointer;
+    border-bottom: 2px solid #d2d2d2;
+    user-select: none;
+}
+
+/* .dropdown--js.dropdown--type .filtered-content__set:hover {
+    border-bottom: 2px solid #d2d2d2;
+  } */

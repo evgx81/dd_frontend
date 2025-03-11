@@ -1,7 +1,14 @@
 <script>
-    export let set;
+    export let product_set;
 
-    import { favourite_sets, getCookie, getUserNumberFavouriteSets } from "./store";
+    import {
+        favourite_sets,
+        getCookie,
+        getUserNumberFavouriteSets,
+        is_authenticated,
+        is_search_results_page,
+        search_results_sets,
+    } from "./stores";
 
     /**
      * Обработка события, когда пользователь нажимает на лайк у сета с изображением
@@ -27,13 +34,13 @@
                 throw new Error(`Error: ${resp.status}`);
             }
 
-            // Если удалось поставить лайк, то в зависимости от вида полученного сета, ищем в выбранный сет по идентификатору и меняем значение поля "is_liked"
+            // Если удалось поставить лайк, то в зависимости от текущий страницы, ищем в выбранный сет по идентификатору и меняем значение поля "is_liked"
             if (resp.status == 201) {
-                let curr_chosen_set = $favourite_sets.find(
-                    (set) => set.id === set_id,
-                );
+                let curr_chosen_set = $is_search_results_page
+                    ? $search_results_sets.find((set) => set.id === set_id)
+                    : $favourite_sets.find((set) => set.id === set_id);
+
                 curr_chosen_set.is_liked = true;
-                favourite_sets.set($favourite_sets);
             }
         } else {
             const resp = await fetch(
@@ -50,25 +57,31 @@
                 throw new Error(`Error: ${resp.status}`);
             }
 
-            // Если удалось убрать лайк, то в зависимости от вида полученного сета, ищем в выбранный сет по идентификатору и меняем значение поля "is_liked"
+            // Если удалось убрать лайк, то в зависимости от текущий страницы, ищем в выбранный сет по идентификатору и меняем значение поля "is_liked"
             if (resp.status == 204) {
-                let curr_chosen_set = $favourite_sets.find(
-                    (set) => set.id === set_id,
-                );
+                let curr_chosen_set = $is_search_results_page
+                    ? $search_results_sets.find((set) => set.id === set_id)
+                    : $favourite_sets.find((set) => set.id === set_id);
+
                 curr_chosen_set.is_liked = false;
-                favourite_sets.set($favourite_sets);
             }
         }
+
+        // Обновляем сторы лайкнутых сетов
+        $is_search_results_page
+            ? search_results_sets.set($search_results_sets)
+            : favourite_sets.set($favourite_sets);
 
         // Получаем обновленное количество лайкнутых сетов
         await getUserNumberFavouriteSets(token);
     }
 </script>
 
-<div id={set.id} class="catalogs__set-free-img-wrapper">
+<div class="catalogs__set-free-img-wrapper">
     <div class="catalogs__set-free-img swiper">
         <div class="swiper-wrapper">
-            {#each set.images as set_image}
+            {#each product_set.images as set_image}
+                <!-- svelte-ignore a11y_img_redundant_alt -->
                 <img class="swiper-slide" src={set_image} alt="image" />
             {/each}
         </div>
@@ -79,9 +92,6 @@
                 class="swiper-pagination-bullet swiper-pagination-bullet-active"
                 aria-current="true"
             ></span>
-            {#each set.images as _}
-                <span class="swiper-pagination-bullet"></span>
-            {/each}
         </div>
         <span
             class="swiper-notification"
@@ -92,8 +102,9 @@
     <div class="set-options" data-name="set-options">
         <div class="set-options__wrapper">
             <div class="set-options__inner set-options__inner--three">
-                {#each set.products as product}
+                {#each product_set.products as product}
                     <div class="set-options__item">
+                        <!-- svelte-ignore a11y_img_redundant_alt -->
                         <img
                             src={product.image}
                             alt="image"
@@ -101,48 +112,57 @@
                             width="45px"
                             height="45px"
                         />
-                        <div class="set-options__price">
+                        <!-- <div class="set-options__price">
                             $ {product.price}
-                        </div>
+                        </div> -->
                     </div>
                 {/each}
             </div>
             <div class="set-options__footer">
-                <button class="set-options__button button--accent"
-                    >Modify</button
-                >
-                <button class="set-options__button button--dark"
-                    >See more</button
-                >
-                <div class="set-options__text-wrapper">
-                    <div class="set-options__text">
-                        $ {set.total_price}
-                    </div>
+                <div class="catalog-price-total catalog-price-total--height">
+                    Total <span class="bold">
+                        <span data-name="item-count">
+                            {product_set.products.length}
+                        </span> items</span
+                    >
+                    for :
+                    <span class="bold size" data-name="total-price"
+                        >$ {product_set.total_price}</span
+                    >
                 </div>
+                <a
+                    href={`/set_card/${product_set.id}`}
+                    class="set-options__button button--dark"
+                >
+                    See more
+                </a>
             </div>
         </div>
     </div>
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-        class={`like ${set.is_liked ? "js--active" : ""}`}
-        data-name="like"
-        on:click={() => handleLikeClick(set.id, set.is_liked)}
-    >
-        <div class="like__inner">
-            {#if set.is_liked}
-                <img
-                    src="/static/images/like-active.svg"
-                    alt="like"
-                    class="like__img like__img--active"
-                />
-            {:else}
-                <img
-                    src="/static/images/like.svg"
-                    alt="like"
-                    class="like__img"
-                />
-            {/if}
+    {#if $is_authenticated}
+        <div
+            class={`like ${product_set.is_liked ? "js--active" : ""}`}
+            data-name="like"
+            on:click={() =>
+                handleLikeClick(product_set.id, product_set.is_liked)}
+        >
+            <div class="like__inner">
+                {#if product_set.is_liked}
+                    <img
+                        src="/static/images/like-active.svg"
+                        alt="like"
+                        class="like__img like__img--active"
+                    />
+                {:else}
+                    <img
+                        src="/static/images/like.svg"
+                        alt="like"
+                        class="like__img"
+                    />
+                {/if}
+            </div>
         </div>
-    </div>
+    {/if}
 </div>
