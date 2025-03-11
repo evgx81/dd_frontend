@@ -1,10 +1,5 @@
 <script>
-    import {
-        total_amount_of_products,
-        total_price,
-    } from "./stores";
-
-
+    import { total_amount_of_products, total_price } from "./stores";
 </script>
 
 <div class="catalog-price-total catalog-price-total--height">

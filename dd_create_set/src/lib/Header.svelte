@@ -11,9 +11,9 @@
 
     async function getUserInfo(token) {
         try {
-            const resp = await fetch("/users/get_user_info", {
+            const resp = await fetch("/users/get_user_info/", {
                 headers: {
-                    Authorization: token,
+                    Authorization: `Token ${token}`,
                 },
             });
             if (!resp.ok) {
@@ -84,7 +84,13 @@
                 </div>
             </a>
             <Menu />
-            <div class="header__search">
+            <form
+                name="header_search"
+                class="header__search"
+                action="/search_results/"
+                data-name="form"
+                method="GET"
+            >
                 <div class="header-search__icon">
                     <svg
                         width="14"
@@ -103,9 +109,10 @@
                     type="text"
                     class="header-search__input"
                     placeholder="Search"
-                    data-name="search-input"
+                    name="q"
                 />
-            </div>
+                <input type="submit" style="display: none" />
+            </form>
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div class="header-aside">
                 <!-- <a class="header-aside__item" href="balance.php">
@@ -190,39 +197,63 @@
                     </div>
                     <div
                         class="dropdown__content dropdown__content--js"
-                        style={`${show_user_menu ? $is_authenticated ? "max-height: 168px" : "max-height: 92px" : ""}`}
+                        style={`${show_user_menu ? ($is_authenticated ? "max-height: 168px" : "max-height: 92px") : ""}`}
                     >
                         <ul class="dropdown__body">
-                            <li class="dropdown__list-item">
-                                <a href="/favourites/" class="dropdown__link">
-                                    <span class="dropdown__link-text"
-                                        >Favorites</span
+                            {#if $is_authenticated}
+                                <li class="dropdown__list-item">
+                                    <a
+                                        href="/favourites/"
+                                        class="dropdown__link"
                                     >
-                                </a>
-                            </li>
-                            <li class="dropdown__list-item">
-                                <a
-                                    href="/settings/?next=/create_set/"
-                                    class="dropdown__link"
-                                >
-                                    <span class="dropdown__link-text"
-                                        >Profile Settings</span
+                                        <span class="dropdown__link-text"
+                                            >Favorites</span
+                                        >
+                                    </a>
+                                </li>
+                                <li class="dropdown__list-item">
+                                    <a
+                                        href="/settings/?next=/create_set/"
+                                        class="dropdown__link"
                                     >
-                                </a>
-                            </li>
-                            <li class="dropdown__list-item">
-                                <a href="/support/" class="dropdown__link">
-                                    <span class="dropdown__link-text">Help</span
+                                        <span class="dropdown__link-text"
+                                            >Profile Settings</span
+                                        >
+                                    </a>
+                                </li>
+                                <li class="dropdown__list-item">
+                                    <a href="/support/" class="dropdown__link">
+                                        <span class="dropdown__link-text"
+                                            >Help</span
+                                        >
+                                    </a>
+                                </li>
+                                <li class="dropdown__list-item">
+                                    <a href="/logout/" class="dropdown__link">
+                                        <span class="dropdown__link-text"
+                                            >Log out</span
+                                        >
+                                    </a>
+                                </li>
+                            {:else}
+                                <li class="dropdown__list-item">
+                                    <a href="/support/" class="dropdown__link">
+                                        <span class="dropdown__link-text"
+                                            >Help</span
+                                        >
+                                    </a>
+                                </li>
+                                <li class="dropdown__list-item">
+                                    <a
+                                        href={`/login/?next=${window.location.pathname}`}
+                                        class="dropdown__link"
                                     >
-                                </a>
-                            </li>
-                            <li class="dropdown__list-item">
-                                <a href="/logout/" class="dropdown__link">
-                                    <span class="dropdown__link-text"
-                                        >Log out</span
-                                    >
-                                </a>
-                            </li>
+                                        <span class="dropdown__link-text"
+                                            >Sign in</span
+                                        >
+                                    </a>
+                                </li>
+                            {/if}
                         </ul>
                     </div>
                 </div>

@@ -4,13 +4,10 @@
         curr_chosen_slot_num,
         chosen_slots,
         total_price,
-        product_images,
-        // slots,
-        show_stylum_button,
-        show_product_images,
-        // got_result_images,
         products,
-        // render_task_results,
+        swiper_images,
+        update_swiper
+
     } from "./stores";
 
     /**
@@ -19,6 +16,10 @@
      */
     export let product;
 
+    /**
+     * Возвращает наименование товара для отображения на странице
+     * @returns {string}
+     */
     function getProductDisplayName() {
         let curr_display_name = product.name;
 
@@ -49,10 +50,20 @@
         return curr_display_name;
     }
 
-    function countPrice() {
+    /**
+     * Возвращает общее количество товаров в сете
+     */
+    function countTotalSetAmountOfProducts() {
+        return $chosen_slots.filter((slot) => slot.is_chosen === true).length;
+    }
+
+    /**
+     * Возвращает общую цену товаров в сете
+     */
+    function countTotalSetPrice() {
         let total_price = 0;
         $chosen_slots
-            .filter((x) => x.is_chosen === true)
+            .filter((slot) => slot.is_chosen === true)
             .forEach((element) => {
                 total_price += element.price;
             });
@@ -63,21 +74,15 @@
      * При нажатии на кнопку AddToSet нужно менять данные в chosen_slots по выбранному номеру слота
      */
     function handleAddToSetClick() {
-        // Выводим изображения товаров на слайдер изображений
-        $product_images = product.images;
-        $show_product_images = true;
+
+        // Выводим изображения товара на слайдер изображений
+        swiper_images.set(product.images);
+        update_swiper.set(true);
 
         // Находим слот, который выбрал пользователь
         let chosen_slot = $chosen_slots.find(
             (slot) => slot.order_num === $curr_chosen_slot_num,
         );
-
-        // Отображаем кнопку Stylum, если выбран обязательный товар до получения результатов рендеринга
-        if (!chosen_slot.is_optional && !chosen_slot.clicked_modify_button) {
-            show_stylum_button.set(true);
-        }
-
-        console.log(product);
 
         // Заполняем данные слота данными товара
         chosen_slot.is_chosen = true;
@@ -85,37 +90,22 @@
         chosen_slot.show_delete_button = chosen_slot.is_optional; // Выводим кнопку "Delete", если выбран необязательный слот
         chosen_slot.clicked_modify_button = false; // Отщелкиваем кнопку "Modify"
         chosen_slot.clicked_delete_button = false; // Отщелкиваем кнопку "Delete"
-        chosen_slot.sku = product.sku;
         chosen_slot.images = product.images;
+        chosen_slot.sku = product.sku;
         chosen_slot.brand = product.brand;
-
-        // Обрезаем наименование товара, если его количество символов больше, чем доступное количество символов на слоте
-        // chosen_slot.name =
-        //     product.name.length > number_of_product_name_symbols
-        //         ? product.name.slice(0, number_of_product_name_symbols) + "..."
-        //         : product.name;
-
         chosen_slot.name = product.name;
         chosen_slot.length = product.length;
         chosen_slot.height = product.height;
         chosen_slot.width = product.width;
-
-
-        // chosen_slot.color =
-        //     product_color.length > number_of_color_name_symbols
-        //         ? product_color.slice(0, number_of_color_name_symbols) + "..."
-        //         : product_color;
         chosen_slot.color = product.colors.join(", ");
         chosen_slot.price = product.price;
 
         // Обновляем слоты, чтобы значения слотов обновились
         chosen_slots.set($chosen_slots);
 
-        total_amount_of_products.set(
-            $chosen_slots.filter((slot) => slot.is_chosen === true).length,
-        );
-
-        total_price.set(countPrice());
+        // Пересчитываем общее количество товаров в сете и его общую стоимость
+        total_amount_of_products.set(countTotalSetAmountOfProducts());
+        total_price.set(countTotalSetPrice());
 
         // Находим товар, который уже добавлен в текущей общей категории
         let before_added_product = $products.data.find(
@@ -133,6 +123,7 @@
 
         // Обновляем список товаров
         products.set($products);
+
     }
 </script>
 
@@ -140,6 +131,7 @@
     <div class="catalogs__set-free-img swiper">
         <div class="swiper-wrapper">
             {#each product.images as image}
+                <!-- svelte-ignore a11y-img-redundant-alt -->
                 <img class="swiper-slide" src={image} alt="image" />
             {/each}
         </div>
@@ -149,10 +141,11 @@
             <span
                 class="swiper-pagination-bullet swiper-pagination-bullet-active"
                 aria-current="true"
+            ></span><span class="swiper-pagination-bullet"></span><span
+                class="swiper-pagination-bullet"
+            ></span><span class="swiper-pagination-bullet"></span><span
+                class="swiper-pagination-bullet"
             ></span>
-            {#each product.images as _}
-                <span class="swiper-pagination-bullet"></span>
-            {/each}
         </div>
         <span
             class="swiper-notification"

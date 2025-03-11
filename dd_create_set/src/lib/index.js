@@ -3,9 +3,7 @@ const CLASSES = {
     HIDDEN: 'js--hidden',
     SCROLLED : 'js--scrolled',
     ACTIVE: 'js--active',
-    NONE: 'js--none',
-    SHOW: 'js--show',
-    POSITION: 'js--position'
+    NONE: 'js--none'
 };
 const initHeroSlider = () => {
     const heroSwiper = new Swiper('.hero-slider', {
@@ -22,8 +20,6 @@ const initialSliders = () => {
     const buildSwiperSlider = (swiperSliderElement) => {
         const swiperSlider = swiperSliderElement;
         const swiperPagination = swiperSlider.querySelector('.swiper-pagination');
-        const swiperArrowNext = swiperSlider.querySelector('.arrow--next');
-        const swiperArrowPrev = swiperSlider.querySelector('.arrow--prev');
         if (!swiperSlider) return;
 
         const currentSwiper = new Swiper(swiperSlider, {
@@ -34,36 +30,20 @@ const initialSliders = () => {
             pagination: {
                 el: swiperPagination,
                 clickable: true
-            },
-            navigation: {
-                nextEl: swiperArrowNext,
-                prevEl: swiperArrowPrev,
             }
         });
 
-        if(swiperSlider.dataset.name === "slider-set" || swiperSlider.dataset.name === "slider-set-product") {
-            const pagination = swiperSlider.querySelector('.swiper-pagination');
-            pagination.classList.add('js--preview');
-            const paginationItems = pagination.querySelectorAll('.swiper-pagination-bullet');
-            const slides = swiperSlider.querySelectorAll('.swiper-slide');
-            paginationItems.forEach((item, index) => {
-                const image = document.createElement("img");
-                image.classList.add('pagination-preview__image');
-                image.src = slides[index].src;
-                item.insertAdjacentElement('beforeend', image);
-            })
-        } else {
-            swiperSlider.addEventListener('mousemove', (event) => {
-                const rect = swiperSlider.getBoundingClientRect();
-                const x = event.clientX - rect.left;
-                const width = rect.width;
+        swiperSlider.addEventListener('mousemove', (event) => {
+            const rect = swiperSlider.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const width = rect.width;
 
-                const numberOfSlides = currentSwiper.slides.length;
-                const partWidth = width / numberOfSlides;
-                const slideIndex = Math.floor(x / partWidth);
-                currentSwiper.slideTo(slideIndex);
-            });
-        }
+            const numberOfSlides = currentSwiper.slides.length;
+            const partWidth = width / numberOfSlides;
+            const slideIndex = Math.floor(x / partWidth);
+
+            currentSwiper.slideTo(slideIndex);
+        });
     }
 
     const slidersParents = document.querySelectorAll('[data-name="slider-parent"]');
@@ -216,9 +196,7 @@ const initSetCatalogSections = () => {
     const catalogSection = document.querySelector('[data-name="catalog-set-section"]');
     const defaultSectionParent = document.querySelector('[data-name="default-sections-parent"]');
     const additionalSectionParent = document.querySelector('[data-name="additional-sections-parent"]');
-    const anchorLinks = document.querySelectorAll('[data-name="link-anchor"]');
     const stulymButton = document.querySelector('[data-button="stylum"]');
-    const pagination = document.querySelector('.js--preview');
     if(openButtons.length) {
         const openCatalogSections = () => {
             catalogSection.classList.add(CLASSES.ACTIVE);
@@ -229,16 +207,9 @@ const initSetCatalogSections = () => {
             catalogSection.classList.remove(CLASSES.ACTIVE);
             defaultSectionParent.classList.remove(CLASSES.HIDDEN)
             stulymButton.classList.remove(CLASSES.ACTIVE);
-            anchorLinks.forEach(link => link.classList.add(CLASSES.SHOW))
             additionalSectionParent.classList.add(CLASSES.ACTIVE);
-            pagination.classList.add(CLASSES.POSITION);
             counter = 0;
-            const hideLinkAnchor = () => {
-                if (window.scrollY > 0){
-                    anchorLinks[0].classList.add(CLASSES.HIDDEN);
-                }
-            };
-            window.addEventListener('scroll', hideLinkAnchor)
+
             initialSliders()
         };
 
@@ -262,10 +233,6 @@ const initSetButtonText = () => {
         const interactivePreloader = document.querySelector('[data-name="preview-360"]');
         const interactivePreloaderText = interactivePreloader.querySelector('[data-name-preview-text-default]');
         const sliderSet = document.querySelector('[data-name="slider-set"]');
-        const sliderSetProduct = document.querySelector('[data-name="slider-set-product"]');
-        const sliderSetPagination = sliderSet.querySelector('.swiper-pagination');
-        const sliderSetProductPagination = sliderSetProduct?.querySelector('.swiper-pagination');
-
         const setButtonText = (event) => {
             const button = event.target.closest('[data-name="button-adding-set"]');
             button.classList.toggle(CLASSES.ACTIVE);
@@ -276,8 +243,6 @@ const initSetButtonText = () => {
             if (counter) {
                 stulymButton.classList.add(CLASSES.ACTIVE);
                 sliderPreloader.classList.add(CLASSES.HIDDEN);
-                sliderSetPagination.classList.add(CLASSES.ACTIVE);
-                sliderSetProductPagination?.classList.add(CLASSES.ACTIVE);
                 videoPreloader.classList.add(CLASSES.HIDDEN);
                 videoPreloader.classList.remove(CLASSES.NONE);
                 interactivePreloader.classList.remove(CLASSES.NONE);
@@ -338,7 +303,6 @@ const openCatalogOrSliderByModifyButton = () => {
     const previewSlider = document.querySelector('[data-name="preview-slider"]');
     const setSection = document.querySelector('[data-name="catalog-set-section"]');
     const defaultSectionsParent = document.querySelector('[data-name="default-sections-parent"]');
-    const sliderSet = document.querySelector('[data-name="slider-set"]');
     const sliderSetProduct = document.querySelector('[data-name="slider-set-product"]');
     const stulymButton = document.querySelector('[data-button="stylum"]');
     const onClickModifyButton = (event) => {
@@ -348,7 +312,6 @@ const openCatalogOrSliderByModifyButton = () => {
             defaultSectionsParent.classList.add(CLASSES.HIDDEN);
             setTimeout(() => { previewSlider.classList.add(CLASSES.HIDDEN);}, 100)
             sliderSetProduct.classList.add(CLASSES.ACTIVE);
-            sliderSet.classList.add('js--pagination-hidden');
         }
     };
 
@@ -358,13 +321,10 @@ const openCatalogOrSliderByModifyButton = () => {
         const sliderSetParent = document.querySelector('[data-name="slider-set"]').parentNode;
         const videoParent = document.querySelector('[data-name="video-wrapper"]');
         const interactiveParent = document.querySelector('[data-name="preview-360"]').parentNode;
-        const anchorLinks = document.querySelectorAll('[data-name="link-anchor"]');
 
         setSection.classList.remove(CLASSES.ACTIVE);
         stulymButton.classList.remove(CLASSES.ACTIVE);
         defaultSectionsParent.classList.remove(CLASSES.HIDDEN);
-        defaultSectionsParent.classList.add(CLASSES.SHOW);
-        anchorLinks.forEach(link => link.classList.add(CLASSES.SHOW));
         previewSlider.classList.remove(CLASSES.HIDDEN);
         previewSlider.classList.remove(CLASSES.NONE);
         setTimeout(() => {
@@ -377,13 +337,8 @@ const openCatalogOrSliderByModifyButton = () => {
             sliderSetParent.classList.add('js--loading');
             videoParent.classList.add('js--loading');
             interactiveParent.classList.add('js--loading');
-        }, 1500);
-        const hideLinkAnchor = () => {
-            if (window.scrollY > 0){
-                anchorLinks[0].classList.add(CLASSES.HIDDEN);
-            }
-        };
-        window.addEventListener('scroll', hideLinkAnchor)
+        }, 1500)
+
         initialSliders();
     };
     stulymButton?.addEventListener('click', closeCatalogSections);
@@ -500,15 +455,3 @@ const initMobilePreview = () => {
 };
 initMobilePreview();
 window.addEventListener("resize", initMobilePreview)
-
-const setLinkAnchor = (event) => {
-    const link = event.target.closest('[data-name="link-anchor"]');
-    link.classList.add(CLASSES.NONE)
-};
-const initLinkAnchor = () => {
-    const links = document.querySelectorAll('[data-name="link-anchor"]');
-    links.forEach((link) => {
-        link.addEventListener('click', setLinkAnchor);
-    });
-};
-initLinkAnchor();

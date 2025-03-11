@@ -1,7 +1,11 @@
 <script>
     import { afterUpdate, onMount } from "svelte";
     import Product from "./Product.svelte";
-    import { products_filtered } from "./stores";
+    import {
+        products_filtered,
+        initProductAndSimilarProductSetSliders,
+        show_products_catalog,
+    } from "./stores";
     import BrandFilter from "./Filters/BrandFilter.svelte";
     import ColorFilter from "./Filters/ColorFilter.svelte";
     import MaterialFilter from "./Filters/MaterialFilter.svelte";
@@ -21,62 +25,24 @@
      */
     let currentProducts = 30;
 
-    const initialSliders = () => {
-        const buildSwiperSlider = (swiperSliderElement) => {
-            const swiperSlider = swiperSliderElement;
-            const swiperPagination =
-                swiperSlider.querySelector(".swiper-pagination");
-            if (!swiperSlider) return;
-
-            const currentSwiper = new Swiper(swiperSlider, {
-                effect: "fade",
-                fadeEffect: {
-                    crossFade: true,
-                },
-                pagination: {
-                    el: swiperPagination,
-                    clickable: true,
-                },
-            });
-
-            swiperSlider.addEventListener("mousemove", (event) => {
-                const rect = swiperSlider.getBoundingClientRect();
-                const x = event.clientX - rect.left;
-                const width = rect.width;
-
-                const numberOfSlides = currentSwiper.slides.length;
-                const partWidth = width / numberOfSlides;
-                const slideIndex = Math.floor(x / partWidth);
-
-                currentSwiper.slideTo(slideIndex);
-            });
-        };
-
-        const slidersParents = document.querySelectorAll(
-            '[data-name="slider-parent"]',
-        );
-
-        slidersParents.forEach((slidersParent) => {
-            const swiperSliders = slidersParent.querySelectorAll(".swiper");
-            swiperSliders.forEach((swiperSlider) =>
-                buildSwiperSlider(swiperSlider),
-            );
-        });
-    };
-
-    onMount(() => {
-        // Делаем слайдер картинок после фильтрации
-        initialSliders();
+    afterUpdate(() => {
+        // Нужно, чтобы после нажатия на кнопку "Load more" или фильтрации товаров изображения товаров перелистывались
+        initProductAndSimilarProductSetSliders();
     });
 
-    afterUpdate(() => {
-        // Делаем слайдер картинок после фильтрации
-        initialSliders();
+    onMount(() => {
+        // При инициализации компоненты перенаправляем пользователя в каталог товаров с помощью якоря
+        // window.location.href = "#products-catalog";
+        const productsCatalog = document.getElementById("products-catalog");
+        productsCatalog.scrollIntoView({ behavior: "smooth" });
     });
 </script>
 
-<section class="section" data-name="catalog-set-section">
-    <div class="container">
+<section
+    class={`section section--hidden${$show_products_catalog ? " js--active" : ""}`}
+    data-name="catalog-set-section" 
+>
+    <div class="container" >
         <div class="create-set__catalog">
             <div class="create-set__catalog-header">
                 <svg
@@ -91,7 +57,7 @@
                         fill="#1F2933"
                     />
                 </svg>
-                <div class="create-set__catalog-title">
+                <div class="create-set__catalog-title" id="products-catalog">
                     Please select a new {general_category_name} below
                 </div>
                 <svg
@@ -122,7 +88,7 @@
 
                 <div
                     class="catalog-sliders catalog-sliders--six-set"
-                    data-name="slider-parent"
+                    data-name="slider-parent-product-or-similar_set"
                 >
                     {#each $products_filtered.slice(0, currentProducts) as product}
                         <Product {product} on:message />

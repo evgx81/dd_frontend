@@ -1,8 +1,10 @@
 .catalog-price__box__admin {
     display: grid;
     grid-template-columns: 10rem 1fr;
-    column-gap: 9.45rem;
-    max-width: 30.25rem;
+    /* column-gap: 9.45rem;
+    max-width: 30.25rem; */
+    column-gap: 8.875rem;
+    max-width: 30rem;
     width: 100%;
 }
 
@@ -46,7 +48,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 10.8125rem;
     height: 100%;
     border-radius: 2px;
     background-color: var(--purpurno-krasnyy);
@@ -59,13 +60,13 @@
     cursor: pointer;
     transition: 0.3s all;
     padding: 0.5rem 1rem;
+    user-select: none;
 }
 
 .approve_set__button__approved {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 10.8125rem;
     height: 100%;
     border-radius: 2px;
     background-color: var(--temno-seryy);
@@ -78,6 +79,7 @@
     cursor: pointer;
     transition: 0.3s all;
     padding: 0.5rem 1rem;
+    user-select: none;
 }
 
 .catalog-price-total-wrapper__admin {
@@ -87,9 +89,9 @@
 
 .catalog-price__box__admin__second {
     display: grid;
-    grid-template-columns: 15rem 1fr;
-    column-gap: 0.875rem;
-    max-width: 30.25rem;
+    grid-template-columns: 14rem 1fr;
+    column-gap: 1.5rem;
+    max-width: 30rem;
     width: 100%;
 }
 

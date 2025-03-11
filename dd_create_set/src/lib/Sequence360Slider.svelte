@@ -1,50 +1,83 @@
 <script>
-    import { afterUpdate, onMount } from "svelte";
+    import { afterUpdate } from "svelte";
     import {
-        // got_result_sequences,
+        is_set_card_page,
+        progress_render_task_result,
         render_in_progress,
-        render_task_results,
+        render_task_result_data,
     } from "./stores";
 
+    /**
+     * Хранит массив ссылок на панорамы, которые нужно показать на слайдере
+     */
     let links = [];
-    let preview_slider_initilized = false;
+
+    /**
+     * Показывает, есть ли на слайдере с панорамами изображения для вывода
+     * @type {boolean}
+     */
+    let is_image360_slider_initialized = false;
+
     afterUpdate(() => {
-        // Убираем все текущие панорамы на слайдере
+        // Определяем текущий стиль окна, которое  лежит поверх слайдера с панорамами
+        curr_style = getImagesSliderStyle();
+
+        // При обновлении компоненты убираем все текущие панорамы на слайдере
         links = [];
         const viewToUpdate = document.getElementById("preview-360");
         viewToUpdate.setAttribute("data-image-list-x", `[${links}]`);
 
-        if ($render_in_progress) {
+        // Если происходит панорамы отсутствуют, то меняем стиль курсора на дефолтный и запрещаем пользователю любоe взаимодействие со слайдерoм
+        if ($render_task_result_data.sequences.length === 0) {
             viewToUpdate.style.cursor = "default";
+            viewToUpdate.style.pointerEvents = "none";
+        }
+        // Как только получены панорамы, то разрешаем пользователю взаимодействовать со слайдером
+        else {
+            viewToUpdate.style.pointerEvents = "auto";
         }
 
-        if ($render_task_results.sequences.length > 0) {
-            $render_task_results.sequences.forEach((link) => {
+        // Если значение прогресс-бара для панорамы равно 5, это значит, что рендеринг панорам закончен и можно выводить готовые панорамы на слайдер.
+        // В противном случае компонента всегда будет обновлять при получении результатов рендеринга и просмотреть их не получится.
+        if (
+            $render_task_result_data.sequences.length > 0 &&
+            $progress_render_task_result.progress_sequences === 5
+        ) {
+            // Подготавливаем массив ссылок на панорамы для вывода на слайдере с панорамами
+            $render_task_result_data.sequences.forEach((link) => {
                 links.push(`"${link}"`);
             });
-
-            const viewToUpdate = document.getElementById("preview-360");
             viewToUpdate.setAttribute("data-image-list-x", `[${links}]`);
 
-            if (preview_slider_initilized) {
-                window.CI360?.destroy();
-            }
-            
+            // Если слайдер с панорамами уже инициализирован, то удаляем его и инициализируем его повторно.
+            // Данный механизм нужен, чтобы при повторном рендеринге новые панорамы заменяли старые.
+            window.CI360?.destroy();
             window.CI360?.init();
-            preview_slider_initilized = true;
-        }
 
-        curr_style = getImagesSliderStyle();
+            // Нужно, чтобы скрывалось вспомогательное окно, которое появялется когда нет панорам, которые следует вывести
+            is_image360_slider_initialized = true;
+        }
     });
 
+    /**
+     * Cтиль, который нужно выводить на окне, которое лежит поверх слайдера - нужно, чтобы красиво обработать переходы на разные состояния слайдера
+     * @type {string}
+     */
     let curr_style = "js--active";
 
     function getImagesSliderStyle() {
+        // Если на слайдере нет изображений, то выводится окно надписью "Here will be photos"
         let curr_style = "js--active";
 
-        if ($render_task_results.sequences.length > 0) {
+        // Если получены панорамы сета, то убираем окно, которое лежит поверх слайдера с поседовательностями
+        if (
+            $render_task_result_data.sequences.length > 0 &&
+            $progress_render_task_result.progress_sequences === 5
+        ) {
             curr_style = "js--none";
-        } else if ($render_in_progress) {
+        }
+        // Если идет рендеринг, то выводим окно с прогресс-баром
+        else if ($render_in_progress) {
             curr_style = "js--hidden";
         }
 
@@ -52,23 +85,18 @@
     }
 </script>
 
-<!-- data-filename={`${$got_result_sequences ? "" : "formats__set3-free-1.webp"}`}
-data-image-list-y={$got_result_sequences
-    ? `[${$render_task_results.sequences}]`
-    : "[]"} -->
-
-<!-- data-folder={data_folder}
-    data-filename={`${$got_result_sequences ? " " : "formats__set3-free-1.webp"}`} -->
-
-<!-- {`video-wrapper video-wrapper--visible${$got_result_sequences ? " js--loading" : ""}`} -->
 <section class="section section-pad-top section-index-2 set-card-360">
     <div class="container">
-        <div class="video-wrapper video-wrapper--visible" id="interactive-photos">
+        <div
+            class="video-wrapper video-wrapper--visible"
+            id="interactive-photos"
+        >
             <div
                 class="cloudimage-360 formats__set-free-img-main"
                 id="preview-360"
             >
-                {#if $render_task_results.sequences.length === 0 && !preview_slider_initilized}
+                <!-- Если панорам сета пока нет, то выводим пустое окно -->
+                {#if $render_task_result_data.sequences.length === 0 && is_image360_slider_initialized === false}
                     <div class="cloudimage-360-inner-box">
                         <div class="cloudimage-360-icons-container"></div>
                         <canvas

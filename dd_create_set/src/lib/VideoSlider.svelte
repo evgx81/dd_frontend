@@ -1,87 +1,277 @@
 <script>
-    import { afterUpdate } from "svelte";
-    import { render_in_progress, render_task_results } from "./stores";
+    import { afterUpdate, onMount } from "svelte";
+    import {
+        is_set_card_page,
+        render_in_progress,
+        render_task_result_data,
+        // hide_go_to_video_button
+    } from "./stores";
 
     /**
      * Признак, того что видео загрузилось и готово к проигрыванию
      */
     let ready_to_play = true;
 
-    afterUpdate(() => {
+    // afterUpdate(() => {
+    //     // Если начался процесс рендеринга, то помечаем, что видео еще не готово к проигрыванию
+    //     if ($render_in_progress) {
+    //         ready_to_play = false;
+    //     }
 
-        // Если начался процесс рендеринга, то помечаем, что видео еще не готово к проигрыванию
-        if ($render_in_progress) {
-            ready_to_play = false;
-        }
+    //     curr_style = getVideoSliderStyle();
+    // });
 
-        curr_style = getVideoSliderStyle();
-    });
-
+    /**
+     * Cтиль, который нужно выводить на окне, которое лежит поверх слайдера - нужно, чтобы красиво обработать переходы на разные состояния слайдера
+     * @type {string}
+     */
     let curr_style = "js--active";
 
     function getVideoSliderStyle() {
         let curr_style = "js--active";
 
         // Выводим результирующее видео, если оно получено и готово к проигрыванию
-        if ($render_task_results.videos.length > 0 && ready_to_play) {
+        if ($render_task_result_data.videos.length > 0 && ready_to_play) {
             curr_style = "js--none";
         }
-        // Если происходит рендеринг, то выводим окно с прогресс-баром 
+        // Если происходит рендеринг, то выводим окно с прогресс-баром
         else if ($render_in_progress) {
             curr_style = "js--hidden";
         }
-        // Если видео получено, но не готово к проигрыванию, то выводим окно с прогресс-баром 
-        else if ($render_task_results.videos.length > 0 && !ready_to_play) {
+        // Если видео получено, но не готово к проигрыванию, то выводим окно с прогресс-баром
+        else if ($render_task_result_data.videos.length > 0 && !ready_to_play) {
             curr_style = "js--hidden";
         }
 
         return curr_style;
     }
 
-    // let videoElement = document.getElementById("preview-video");
-    // if ($render_task_results.videos.length > 0) {
-    //     if ($render_task_results.videos[0].includes("/live/")) {
-    //         videoElement.setAttribute(
-    //             "poster",
-    //             $render_task_results.videos[0],
-    //         );
-    //     } else {
-    //         videoElement.removeAttribute("poster");
-    //         videoElement.setAttribute(
-    //             "src",
-    //             $render_task_results.videos[0],
-    //         );
+    // /**
+    //  * Показывает, нужно ли скрывать кнопку "Video" для перехода к слайдеру с видео
+    //  * @type {boolean}
+    //  */
+    // let hide_go_to_video_button = !$is_set_card_page;
+
+    // /**
+    //  * Показывает, нужно ли скрывать кнопку "Interactive photos" для перехода к слайдеру с панорамами
+    //  * @type {boolean}
+    //  */
+    // let hide_go_to_interactive_photos_button = !$is_set_card_page;
+
+    // let go_to_video_button_is_ready_to_be_shown = true;
+    // let go_to_interactive_photos_button_is_ready_to_be_shown = true;
+
+    // Обработчик события прокрутки страницы для скрытия кнопки "Video" или кнопки "Interactive photos"
+    // document.addEventListener(
+    //     "scroll",
+    //     hideGoToVideoButtonAndGoToInteractivePhotosButton,
+    //     false,
+    // );
+
+    // function hideGoToVideoButtonAndGoToInteractivePhotosButton() {
+    //     if (
+    //         hide_go_to_video_button === false &&
+    //         go_to_video_button_is_ready_to_be_shown
+    //     ) {
+    //         // Ищем кнопку "Video"
+    //         const video_slider_element = document.getElementById("video");
+
+    //         // Если пользователь прокрутил страницу до любой части блока с панорамами,
+    //         // то скрываем кнопку "Interactive photos"
+    //         hide_go_to_video_button =
+    //             window.scrollY <
+    //             window.scrollY +
+    //                 video_slider_element.getBoundingClientRect().top;
+
+    //         if (hide_go_to_video_button) {
+    //             go_to_video_button_is_ready_to_be_shown = false;
+    //         }
     //     }
 
+    //     if (
+    //         hide_go_to_interactive_photos_button === false &&
+    //         go_to_interactive_photos_button_is_ready_to_be_shown
+    //     ) {
+    //         // Ищем кнопку "Interactive Photos"
+    //         const interactive_photos_slider_element =
+    //             document.getElementById("interactive-photos");
+
+    //         hide_go_to_interactive_photos_button =
+    //             window.scrollY >
+    //             interactive_photos_slider_element.scrollHeight +
+    //                 interactive_photos_slider_element.getBoundingClientRect()
+    //                     .top;
+
+    //         if (hide_go_to_interactive_photos_button) {
+    //             go_to_interactive_photos_button_is_ready_to_be_shown = false;
+    //         }
+    //     }
     // }
+
+    afterUpdate(() => {
+        
+        // Если начался процесс рендеринга, то помечаем, что видео еще не готово к проигрыванию
+        if ($render_in_progress) {
+            ready_to_play = false;
+        }
+
+        curr_style = getVideoSliderStyle();
+
+        // if ($render_in_progress) {
+        //     // hide_go_to_video_button = true;
+        //     // hide_go_to_interactive_photos_button = true;
+        //     hide_go_to_video_button
+        // } else {
+
+        // if ($hide_go_to_video_button) {
+
+        //     if (go_to_video_button_is_ready_to_be_shown) {
+        //         hide_go_to_video_button = false;
+        //         go
+        //     }
+        // }
+
+        // Иницилизируем показ кнопок "Video" и "Interactive photos" после получения результатов рендеринга на странице создания сета
+        // go_to_video_button_is_ready_to_be_shown =
+        //     $render_task_result_data.videos.length > 0 && hide_go_to_video_button === false;
+
+        // go_to_interactive_photos_button_is_ready_to_be_shown =
+        //     $render_task_result_data.sequences.length > 0 && hide_go_to_interactive_photos_button === false;
+
+        // let remove_listiner =
+        //     hide_go_to_video_button && hide_go_to_interactive_photos_button;
+
+        // scrolled_video_and_interactive_photos_button =
+        //     hide_go_to_video_button && hide_go_to_interactive_photos_button;
+
+        // if (
+        //     ($render_task_result_data.videos.length > 0 ||
+        //         $render_task_result_data.sequences.length > 0) &&
+        //     scrolled_video_and_interactive_photos_button === false
+        // ) {
+        //     hide_go_to_video_button = false;
+        //     hide_go_to_interactive_photos_button = false;
+
+        //     go_to_video_button_is_ready_to_be_shown = true;
+        //     go_to_interactive_photos_button_is_ready_to_be_shown = true;
+
+        // if (
+        //     $render_task_result_data.videos.length === 0 &&
+        //     $render_task_result_data.sequences.length === 0
+        // ) {
+        //     hide_go_to_video_button = true;
+        //     hide_go_to_interactive_photos_button = true;
+        //     go_to_video_button_is_ready_to_be_shown = false;
+        //     go_to_interactive_photos_button_is_ready_to_be_shown = false;
+        //     document.removeEventListener(
+        //         "scroll",
+        //         hideGoToVideoButtonAndGoToInteractivePhotosButton,
+        //         false,
+        //     );
+        // } else {
+
+        //     go_to_video_button_is_ready_to_be_shown = true;
+        //     go_to_interactive_photos_button_is_ready_to_be_shown = true;
+
+        //     console.log(!$is_set_card_page);
+        //     console.log(hide_go_to_video_button);
+        //     console.log(hide_go_to_interactive_photos_button);
+
+        //     document.addEventListener(
+        //         "scroll",
+        //         hideGoToVideoButtonAndGoToInteractivePhotosButton,
+        //         false,
+        //     );
+        // }
+        // else {
+        //     if (
+        //         $render_task_result_data.videos.length > 0 &&
+        //         go_to_video_button_is_ready_to_be_shown === false
+        //     ) {
+        //         go_to_video_button_is_ready_to_be_shown = true;
+        //     }
+
+        //     if (
+        //         $render_task_result_data.sequences.length > 0 &&
+        //         hide_go_to_interactive_photos_button === false
+        //     ) {
+        //         go_to_interactive_photos_button_is_ready_to_be_shown = true;
+        //     }
+        // }
+
+        // Если кнопки "Video" и "Interactive photos" скрыты, то удаляем обработчик события
+        // if (hide_go_to_video_button && hide_go_to_interactive_photos_button) {
+        //     scrolled_video_and_interactive_photos_button = true;
+        //     // document.removeEventListener(
+        //     //     "scroll",
+        //     //     hideGoToVideoButtonAndGoToInteractivePhotosButton,
+        //     //     false,
+        //     // );
+        // }
+        // else {
+        //     go_to_video_button_is_ready_to_be_shown = false;
+        //     go_to_interactive_photos_button_is_ready_to_be_shown = false;
+        // }
+        // else {
+        //     document.removeEventListener(
+        //         "scroll",
+        //         hideGoToVideoButtonAndGoToInteractivePhotosButton,
+        //         false,
+        //     );
+        // }
+
+        // if (go_to_interactive_photos_button_is_ready_to_be_shown) {
+        //     hide_go_to_interactive_photos_button = false;
+        //     go_to_interactive_photos_button_is_ready_to_be_shown = false;
+        // }
+    });
 </script>
 
 <!-- js--loading - отвечает за вывод окна с кнопкой "Download" -->
 <!--  class={`video-wrapper video-wrapper--visible${$got_result_video ? " js--loading" : ""}`} -->
-<section class="section section-pad-top section-pad-bot set-card-video">
-    <a href="/create-set.php#video" class="link-anchor" data-name="link-anchor">
-        <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8.38719 12.8007L1.334 3.18273C0.365227 1.86167 1.30861 -1.28442e-07 2.94681 -2.19586e-07L17.0532 -1.00441e-06C18.6914 -1.09556e-06 19.6348 1.86167 18.666 3.18273L11.6128 12.8007C10.8137 13.8904 9.1863 13.8904 8.38719 12.8007Z" fill="#1F2933" />
+<!-- <section class="section section-pad-top section-pad-bot set-card-video"> -->
+    <!-- <a
+        id="go_to_video_button"
+        href="#video"
+        class={`link-anchor${hide_go_to_video_button ? " js--hidden" : " js--show"}`}
+        data-name="link-anchor"
+        on:click={() => {
+            hide_go_to_video_button = true;
+        }}
+    >
+        <svg
+            width="20"
+            height="14"
+            viewBox="0 0 20 14"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <path
+                d="M8.38719 12.8007L1.334 3.18273C0.365227 1.86167 1.30861 -1.28442e-07 2.94681 -2.19586e-07L17.0532 -1.00441e-06C18.6914 -1.09556e-06 19.6348 1.86167 18.666 3.18273L11.6128 12.8007C10.8137 13.8904 9.1863 13.8904 8.38719 12.8007Z"
+                fill="#1F2933"
+            />
         </svg>
         <span class="link-anchor__text">Video</span>
-        <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8.38719 12.8007L1.334 3.18273C0.365227 1.86167 1.30861 -1.28442e-07 2.94681 -2.19586e-07L17.0532 -1.00441e-06C18.6914 -1.09556e-06 19.6348 1.86167 18.666 3.18273L11.6128 12.8007C10.8137 13.8904 9.1863 13.8904 8.38719 12.8007Z" fill="#1F2933" />
+        <svg
+            width="20"
+            height="14"
+            viewBox="0 0 20 14"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <path
+                d="M8.38719 12.8007L1.334 3.18273C0.365227 1.86167 1.30861 -1.28442e-07 2.94681 -2.19586e-07L17.0532 -1.00441e-06C18.6914 -1.09556e-06 19.6348 1.86167 18.666 3.18273L11.6128 12.8007C10.8137 13.8904 9.1863 13.8904 8.38719 12.8007Z"
+                fill="#1F2933"
+            />
         </svg>
-    </a>
+    </a> -->
     <div class="container">
         <div
             id="video"
             class="video-wrapper video-wrapper--visible"
             data-name="video-wrapper"
         >
-            <!-- <iframe
-                width="1340px"
-                height="837px"
-                allow="autoplay"
-                allowfullscreen
-            ></iframe> -->
             <video
-                id="preview-video"
                 preload="none"
                 width="1340px"
                 height="837px"
@@ -92,7 +282,7 @@
                 on:canplaythrough={() => {
                     ready_to_play = true;
                 }}
-                src={`${$render_task_results.videos.length > 0 ? $render_task_results.videos[0] : ""}`}
+                src={`${$render_task_result_data.videos.length > 0 ? $render_task_result_data.videos[0] : ""}`}
             >
             </video>
 
@@ -330,13 +520,39 @@
             </form> -->
         </div>
     </div>
-    <a href="/create-set.php#interactive-photos" class="link-anchor link-anchor--bottom" data-name="link-anchor">
-        <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8.38719 12.8007L1.334 3.18273C0.365227 1.86167 1.30861 -1.28442e-07 2.94681 -2.19586e-07L17.0532 -1.00441e-06C18.6914 -1.09556e-06 19.6348 1.86167 18.666 3.18273L11.6128 12.8007C10.8137 13.8904 9.1863 13.8904 8.38719 12.8007Z" fill="#1F2933" />
+    <!-- <a
+        id="go_to_interactive_photos_button"
+        href="#interactive-photos"
+        class={`link-anchor link-anchor--bottom${hide_go_to_interactive_photos_button ? " js--hidden" : " js--show"}`}
+        data-name="link-anchor"
+        on:click={() => {
+            hide_go_to_interactive_photos_button = true;
+        }}
+    >
+        <svg
+            width="20"
+            height="14"
+            viewBox="0 0 20 14"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <path
+                d="M8.38719 12.8007L1.334 3.18273C0.365227 1.86167 1.30861 -1.28442e-07 2.94681 -2.19586e-07L17.0532 -1.00441e-06C18.6914 -1.09556e-06 19.6348 1.86167 18.666 3.18273L11.6128 12.8007C10.8137 13.8904 9.1863 13.8904 8.38719 12.8007Z"
+                fill="#1F2933"
+            />
         </svg>
         <span class="link-anchor__text">Interactive photos</span>
-        <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8.38719 12.8007L1.334 3.18273C0.365227 1.86167 1.30861 -1.28442e-07 2.94681 -2.19586e-07L17.0532 -1.00441e-06C18.6914 -1.09556e-06 19.6348 1.86167 18.666 3.18273L11.6128 12.8007C10.8137 13.8904 9.1863 13.8904 8.38719 12.8007Z" fill="#1F2933" />
+        <svg
+            width="20"
+            height="14"
+            viewBox="0 0 20 14"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <path
+                d="M8.38719 12.8007L1.334 3.18273C0.365227 1.86167 1.30861 -1.28442e-07 2.94681 -2.19586e-07L17.0532 -1.00441e-06C18.6914 -1.09556e-06 19.6348 1.86167 18.666 3.18273L11.6128 12.8007C10.8137 13.8904 9.1863 13.8904 8.38719 12.8007Z"
+                fill="#1F2933"
+            />
         </svg>
-    </a>
-</section>
+    </a> -->
+<!-- </section> -->

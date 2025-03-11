@@ -2,6 +2,26 @@ import { derived, writable } from "svelte/store";
 import sortBy from "lodash.sortby";
 import _, { orderBy } from 'lodash';
 
+/**
+* Показывает, является ли текущая страниц
+* @type {import("svelte/store").Writable<boolean>}
+*/
+export const is_set_card_page = writable(true);
+
+// ---------------------------
+// Начало данных карточки сета
+// ---------------------------
+
+/**
+* Данные сета
+* @type {import("svelte/store").Writable<{id: string, is_liked: boolean, is_active: boolean, set_type_id: string, task_id: string, scene: string, images: Array.<string>, sequences: Array.<string>, videos: Array.<string>, products: Array.<{general_category_ids: Array.<string>, sku: string, images: Array.<string>, brand: string, name: string, length: number, width: number, height: number, color: string, price: number, is_added_to_chosen_slots: boolean}>}>}
+*/
+export const set_data = writable({ id: "", is_liked: false, is_active: false, set_type_id: "", task_id: "", products: [], scene: "", images: [], sequences: [], videos: [] });
+
+
+// --------------------------
+// Конец данных карточки сета
+// --------------------------
 
 /**
  * Хранит о данные о сетах пользователя
@@ -27,12 +47,6 @@ export const is_admin_user = derived(user_data, ($user_data) => {
 
 
 /**
-* Количество сетов лайкнутых пользователем
-* @type {import("svelte/store").Writable<{number_of_favourite_sets: number}>}
-*/
-export const number_of_favourite_sets_data = writable({number_of_favourite_sets: 0});
-
-/**
  * Получает значение ключа из куки
  * @param {string} name - значение ключа
  */
@@ -43,8 +57,16 @@ export const getCookie = (name) => {
     }, '')
 }
 
+
+
 /**
- * Получает количество лайкнутых сетов пользователем
+* Количество сетов лайкнутых пользователем
+* @type {import("svelte/store").Writable<{number_of_favourite_sets: number}>}
+*/
+export const number_of_favourite_sets_data = writable({ number_of_favourite_sets: 0 });
+
+/**
+ * Получает и сохраняет в стор количество лайкнутых сетов пользователем
  * @param {string} token - значение токена пользователя
  */
 export async function getUserNumberFavouriteSets(token) {
@@ -65,8 +87,36 @@ export async function getUserNumberFavouriteSets(token) {
     }
 }
 
+
+
+/**
+ * Получает и сохраняет в стор похожие сеты товаров
+ * @param {string} product_set_id - идентификатор сета на рендерениг
+ */
+export async function getSimilarProductSets(product_set_id) {
+    return fetch(
+        "/products/product_sets/similar_sets?" +
+        new URLSearchParams({
+            set_id: product_set_id,
+        }).toString(),
+    )
+        .then(async (r) => await r.json())
+        .then((r) => {
+            similar_product_sets.set(r);
+        })
+        .catch((error) => {
+            console.log(error);
+            similar_product_sets.set([]);
+        });
+}
+
+
+
+
+
+
 // --------------------
-// Начало данные сетов |
+// Начало данных сетов |
 // --------------------
 
 /**
@@ -97,23 +147,48 @@ export const chosen_set_type_id = writable("");
  */
 export const chosen_slots = writable([]);
 
-/**
- * Хранит изображения, выводимые на слайдер создания сета
- * @type {import("svelte/store").Writable<Array.<string>>}
- */
-export let product_images = writable([]);
+// /**
+//  * Хранит изображения, выводимые на слайдер создания сета
+//  * @type {import("svelte/store").Writable<Array.<string>>}
+//  */
+// export let product_images = writable([]);
+
+// /**
+//  * Показывает, нужно ли отображать изображения товара на слайдер создания сета 
+//  * @type {import("svelte/store").Writable<boolean>}
+//  */
+// export let show_product_images = writable(false);
+
+// /**
+//   * Текущие изображения товара для свайпера
+//   * @type {import("svelte/store").Writable.<Array.<string>>}
+//   */
+// export const swiper_product_images = writable([]);
+
+// /**
+//   * Текущие изображения сета для свайпера
+//   * @type {import("svelte/store").Writable.<Array.<string>>}
+//   */
+// export const swiper_set_images = writable([]);
 
 /**
- * Показывает, нужно ли отображать изображения товара на слайдер создания сета 
- * @type {import("svelte/store").Writable<boolean>}
- */
-export let show_product_images = writable(false);
+  * Показывает, что свайпер с изображениями может быть инициализирован
+  * @type {import("svelte/store").Writable.<boolean>}
+  */
+export const swiper_with_set_images_can_be_shown = writable(false);
+
 
 // ***********************************************************************************************
 
 //-------------------------------------------------------
 // Начало переменных, характеризующих процесс рендеринга |
 // ------------------------------------------------------
+
+/**
+ * Хранит данные, которые необходимы для создания задачи на рендеринг
+ * @type {import("svelte/store").Writable<{chosen_set_type_id: string, sku: Array.<string>, scene: string}>}
+ */
+export const product_set_data_for_rendering = writable({ chosen_set_type_id: "", sku: [], scene: "" });
 
 /**
  * Хранит идентификатор задачи на рендеринг
@@ -123,19 +198,23 @@ export const render_task = writable({ id: "" });
 
 /**
  * Хранит результаты задачи на рендеринг
- * @type {import("svelte/store").Writable<{id: string, scene: string, product_set_id: string, images: Array.<string>, sequences: Array.<string>, videos: Array.<string>}>}
+ * @type {import("svelte/store").Writable<{id: string, scene: string, product_set_id: string, is_product_set_active: boolean, is_product_set_liked: boolean, images: Array.<string>, sequences: Array.<string>, videos: Array.<string>}>}
  */
-export const render_task_results = writable({ id: "", scene: "", images: [], sequences: [], videos: [], product_set_id: "" });
-
+export const render_task_result_data = writable({ id: "", scene: "", product_set_id: "", is_product_set_active: false, is_product_set_liked: false, images: [], sequences: [], videos: [] });
 
 /**
- * Показывает, получены ли все результаты рендеринга
- * @type {import("svelte/store").Readable<boolean>}
+ * Хранит результаты задачи на рендеринг
+ * @type {import("svelte/store").Writable<{progress_images: number, progressbar_images_type: number, progress_video: number, progress_sequences: number}>}>}
  */
-export const got_all_render_task_results = derived(render_task_results, ($render_task_results) => $render_task_results.images.length > 0 && $render_task_results.videos.length > 0 && $render_task_results.sequences.length > 0);
+export const progress_render_task_result = writable({ progress_images: 5, progressbar_images_type: 5, progress_video: 5, progress_sequences: 5 });
 
+// /**
+//  * Хранит результаты задачи на рендеринг
+//  * @type {import("svelte/store").Writable<{version: number, error: number, info: string, task_id: string, progress: {camera: number, cameraNum: number, panorama: number, video: number} }>}
+//  */
+// export const progress_render_task_result = writable({ version: 0.1, error: 0, info: "Successful", task_id: "", progress: { camera: 5, cameraNum: 5, panorama: 5, video: 5 } });
 
-/**
+/*
  * Показывает, идет ли процесс рендеринга изображений
  * @type {import("svelte/store").Writable<boolean>}
  */
@@ -159,17 +238,22 @@ export const similar_product_sets = writable([])
 // -------------------------------------------------------------
 
 /**
- * Показывает, нужно ли покаывать кнопку "Stylum" на этапе, когда сет еще не сформирован
+ * Показывает, заполнен ли обязательный слот
  * @type {import("svelte/store").Writable<boolean>}
  */
-export let show_stylum_button = writable(false);
+export let is_not_optional_slot_filled = writable(false);
+
+// /**
+//  * Хранит данные об артикулах товаров, которые пользователь выбрал в сет
+//  * @type {import("svelte/store").Readable<Array.<string>>}
+//  */
+// export const curr_chosen_sku = derived(chosen_slots, ($chosen_slots) => Array.from($chosen_slots.filter(slot => slot.is_chosen).map(filled_slot => filled_slot.sku)));
 
 /**
  * Хранит данные об артикулах товаров, которые пользователь выбрал в сет
- * @type {import("svelte/store").Readable<Array.<string>>}
+ * @type {import("svelte/store").Writable<Array.<string>>}
  */
-export const curr_chosen_sku = derived(chosen_slots, ($chosen_slots) => Array.from($chosen_slots.filter(slot => slot.is_chosen).map(filled_slot => filled_slot.sku)));
-
+export const curr_chosen_sku = writable([]);
 
 // ------------------------------------------------------------
 // Конец переменных, которые отвечают за вывод кнопки "Stylum" |
@@ -216,7 +300,7 @@ export const slots_sorted = derived(slots, (slots) => sortBy(slots, "order_num")
 
 /**
  * Хранит данные о компонентах (укрупненных категориях), входящих в состав сета
- * @type {import("svelte/store").Writable<Map.<string, Array.<{sku: string, name: string, brand: string, country_of_origin: string, colors: Array.<string>, price: number, general_category_ids: Array.<string>, length: number, width: number, height: number, images: Array.<string>, materials: Array.<string>, is_added_to_set: boolean, size_category_name: string, size_category_priority: number, amount_in_sets: number, category: string}>}>>}
+ * @type {import("svelte/store").Writable<Map.<string, Array.<{sku: string, name: string, brand: string, country_of_origin: string, colors: Array.<string>, price: number, general_category_ids: Array.<string>, length: number, width: number, height: number, images: Array.<string>, materials: Array.<string>, is_added_to_set: boolean, size_category_name: string, size_category_priority: number, amount_in_sets: number, category: string}>>>}>>}
  */
 export const cached_general_categories_products = writable(new Map());
 
@@ -226,18 +310,35 @@ export const cached_general_categories_products = writable(new Map());
 // Начало общей информация о сете |
 // -------------------------------
 
-
 /**
  * Хранит общее количество товаров в сете
  * @type {import("svelte/store").Writable<number>}
  */
-export let total_amount_of_products = writable(0);
+export const total_amount_of_products = writable(0);
 
 /**
  * Хранит общую цену товаров в сете
  * @type {import("svelte/store").Writable<number>}
  */
-export let total_price = writable(0);
+export const total_price = writable(0);
+
+/**
+ * Хранит массив изображений, которые отображаются на свайпере изображений
+ * @type {import("svelte/store").Writable<Array.<string>>}
+ */
+export const swiper_images = writable([]);
+
+/**
+ * Флаг, указывающий на то, нужно ли обновить слайдер
+ * @type {import("svelte/store").Writable<boolean>}
+ */
+export const update_swiper = writable(false);
+
+/**
+ * Флаг, указывающий на то, нужно ли слайдеру перейти на первый слайд
+ * @type {import("svelte/store").Writable<boolean>}
+ */
+export const go_to_first_swiper_slide = writable(false);
 
 // ------------------------------
 // Конец общей информация о сете |
@@ -384,6 +485,129 @@ export const sizes = derived(products, (products) => sortBy(_.uniqWith(products.
  * @type {import("svelte/store").Readable<Array.<string>>}
  */
 export const decor_categories = derived(products, (products) => Array.from(new Set(products.data.map(product => product.category))));
+
+/**
+ * Показывает, нужно ли показывать кнопку "Video" для перехода к слайдеру с видео
+ * @type {import("svelte/store").Writable.<boolean>}
+ */
+export const show_go_to_video_button = writable(false);
+
+/**
+ * Показывает, нужно ли показывать кнопку "Interactive photos" для перехода к слайдеру с панорамами
+ * @type {import("svelte/store").Writable.<boolean>}
+ */
+export const show_go_to_interactive_photos_button = writable(false);
+
+/**
+ * Показывает,  "Interactive photos" отобдля перехода к слайдеру с панорамами
+ * @type {import("svelte/store").Writable.<boolean>}
+ */
+export const go_to_video_button_is_scrolled = writable(false);
+
+export const go_to_interactive_button_is_scrolled = writable(false);
+
+
+
+/**
+ * Процедура, которая инициализирует перелистывание изображений на слайдере результатов рендеринга
+ */
+// export const initCreateSetSlider = () => {
+
+//     const buildSwiperSlider = (swiperSliderElement) => {
+//         const swiperSlider = swiperSliderElement;
+//         const swiperPagination = swiperSlider.querySelector('.swiper-pagination');
+//         const swiperArrowNext = swiperSlider.querySelector('.arrow--next');
+//         const swiperArrowPrev = swiperSlider.querySelector('.arrow--prev');
+//         if (!swiperSlider) return;
+
+//         const currentSwiper = new Swiper(swiperSlider, {
+//             effect: "fade",
+//             fadeEffect: {
+//                 crossFade: true
+//             },
+//             pagination: {
+//                 el: swiperPagination,
+//                 clickable: true
+//             },
+//             navigation: {
+//                 nextEl: swiperArrowNext,
+//                 prevEl: swiperArrowPrev,
+//             }
+//         });
+
+//         // Если осуществляется перелистывания слайдера с изображениями товаров или рендеров,
+//         // то добавляются дополниетельно стрелки и изображения снизу слайдера
+//         if (swiperSlider.dataset.name === "slider-set") {
+//             const pagination = swiperSlider.querySelector('.swiper-pagination');
+//             const slides = swiperSlider.querySelectorAll('.swiper-slide');
+
+//             // Если нет данных для вывода изображений на слайдере, то не инициализируем показ слайдов
+//             if (slides.length === 0) {
+//                 return;
+//             }
+
+//             const paginationItems = pagination.querySelectorAll('.swiper-pagination-bullet');
+
+//             paginationItems.forEach((item, index) => {
+
+//                 const image = document.createElement("img");
+//                 image.classList.add('pagination-preview__image');
+//                 image.src = slides[index].src;
+//                 item.insertAdjacentElement('beforeend', image);
+//             })
+
+//             pagination.classList.add('js--preview');
+//             pagination.classList.add('js--active');
+//             pagination.classList.add('js--position');
+//         }
+//     }
+
+//     const slidersParent = document.querySelector('[data-name="slider-parent"]');
+//     const swiperSliders = slidersParent.querySelectorAll('.swiper');
+//     swiperSliders.forEach((swiperSlider) => buildSwiperSlider(swiperSlider));
+
+// };
+
+export const initProductAndSimilarProductSetSliders = () => {
+    const buildSwiperSlider = (swiperSliderElement) => {
+        const swiperSlider = swiperSliderElement;
+        if (!swiperSlider) return;
+
+        const currentSwiper = new Swiper(swiperSlider, {
+            effect: "fade",
+            fadeEffect: {
+                crossFade: true
+            },
+            pagination: {
+                el: swiperSlider.querySelector('.swiper-pagination'),
+                clickable: true
+            },
+        });
+
+        swiperSlider.addEventListener('mousemove', (event) => {
+            const rect = swiperSlider.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const width = rect.width;
+
+            const numberOfSlides = currentSwiper.slides.length;
+            const partWidth = width / numberOfSlides;
+            const slideIndex = Math.floor(x / partWidth);
+
+            currentSwiper.slideTo(slideIndex);
+        });
+
+        // В момент ухода курсора со слайдера, отображаем первое изображение на слайдере
+        swiperSlider.addEventListener('mouseleave', () => currentSwiper.slideTo(0));
+    }
+
+    // Находим все слайдеры с товарами и сетами, похожими на данный товар и инициализируем их
+    const slidersParents = document.querySelectorAll('[data-name="slider-parent-product-or-similar_set"]');
+
+    slidersParents.forEach((slidersParent) => {
+        const swiperSliders = slidersParent.querySelectorAll('.swiper');
+        swiperSliders.forEach((swiperSlider) => buildSwiperSlider(swiperSlider));
+    });
+};
 
 // -------------------------
 // Конец фильтрации товаров |

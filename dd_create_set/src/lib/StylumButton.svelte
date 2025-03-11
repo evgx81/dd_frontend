@@ -1,13 +1,12 @@
 <script>
     import _ from "lodash";
     import {
-        show_stylum_button,
+        is_not_optional_slot_filled,
         chosen_set_type_id,
         chosen_slots,
         render_in_progress,
         render_task,
-        render_task_results,
-        show_product_images,
+        render_task_result_data,
         show_products_catalog,
         filters,
         curr_chosen_sku,
@@ -15,47 +14,91 @@
         show_render_results_sliders,
         getCookie,
         getUserNumberFavouriteSets,
+        getSimilarProductSets,
+        product_set_data_for_rendering,
         user_data,
+        show_go_to_video_button,
+        go_to_video_button_is_scrolled,
+        go_to_interactive_button_is_scrolled,
+        show_go_to_interactive_photos_button,
+        is_authenticated,
+        progress_render_task_result,
+        swiper_images,
+        update_swiper,
+        go_to_first_swiper_slide,
     } from "./stores";
     import { onMount } from "svelte";
 
+    /**
+     * Проверяет доступность кнопки "Stylum"
+     */
     let stylum_button_is_active = true;
-    // async function isActiveStylumButton() {
-    //     setInterval(async function () {
-    //         const raspredelytor_resp = await fetch(
-    //             `http://188.65.133.34:8888/status/user/stylum/${$user_data.email.replace("@", "%40")}`,
-    //         );
 
-    //         if (!raspredelytor_resp.ok) {
-    //             throw new Error(`Error: ${raspredelytor_resp.status}`);
-    //         }
+    /**
+     * Показывает максимальное количество изображений сета, которое может быть получено во время рендеринга
+     */
+    let max_set_images_number = 5;
 
-    //         let is_active_data = await raspredelytor_resp.json();
-    //         console.log(is_active_data.status);
-    //         stylum_button_is_active = is_active_data.status;
-    //     }, 1000);
-    // }
+    async function isActiveStylumButton() {
+        setInterval(async function () {
+            const raspredelytor_resp = await fetch(
+                `http://149.126.98.106:8888/status/user/stylum/${$user_data.email.replace("@", "%40")}`,
+            );
 
-    // onMount(async () => {
-    //     await isActiveStylumButton();
-    // });
+            if (!raspredelytor_resp.ok) {
+                throw new Error(`Error: ${raspredelytor_resp.status}`);
+            }
 
+            let is_active_data = await raspredelytor_resp.json();
+            stylum_button_is_active = is_active_data.status;
+        }, 3000);
+    }
 
+    onMount(async () => {
+        // Если пользователь авторизован, то проверяем доступность кнопки "Stylum"
+        if ($is_authenticated) {
+            // await isActiveStylumButton();
+        }
+    });
 
     /**
      * Получает результаты выполнения задачи на рендеринг
      * @param {string} render_task_id - идентификатор задачи на рендерениг
-     * @param {string} token - токен пользователя
      */
-    async function getRenderTaskResults(render_task_id, token) {
+    async function getRenderTaskResultProgress(render_task_id) {
+        fetch(
+            `http://149.126.98.106:8888/status/progress/task/${render_task_id}`,
+        )
+            .then((progress_resp) => {
+                if (!progress_resp.ok) {
+                    console.log(
+                        "Распределятор пока не создал задачу на рендеринг.",
+                    );
+
+                    return;
+                }
+                return progress_resp.json();
+            })
+            .then((data) => {
+                $progress_render_task_result.progressbar_images_type =
+                    data.progress.cameraNum;
+                $progress_render_task_result.progress_images =
+                    data.progress.camera;
+                $progress_render_task_result.progress_video =
+                    data.progress.video;
+                $progress_render_task_result.progress_sequences =
+                    data.progress.panorama;
+                console.log($progress_render_task_result);
+            })
+            .catch((error) => {
+                console.log(`${error}`);
+            });
+    }
+
+    async function getRenderTaskResult(render_task_id) {
         const resp = await fetch(
             "/render_tasks/get_task_result?" +
                 new URLSearchParams({ id: render_task_id }).toString(),
-            {
-                headers: {
-                    Authorization: `Token ${token}`,
-                },
-            },
         );
 
         if (!resp.ok) {
@@ -64,92 +107,96 @@
 
         if (resp.status == 200 || resp.status == 206) {
             const data = await resp.json();
-            render_task_results.set(data);
+            render_task_result_data.set(data);
         }
 
         return resp.status == 200;
     }
 
-    /**
-     * Обрабытывает результаты задачи на рендеринг и, когда рендеринг завершится, возвращает промиз об успешеном выполнении задачи (см. полдробнее - https://learn.javascript.ru/promise)
-     * @param {string} token - токен пользователя
-     */
-    function processRenderTaskResults(token) {
-        return new Promise((resolve) => {
-            let process_render_task_results = setInterval(async function () {
-                let got_all_render_results = await getRenderTaskResults(
-                    $render_task.id,
-                    token,
-                );
+    function updateSwiperImages() {
 
-                // Если получены все результаты рендеринга, то прекращаем запросы и отмечаем, что рендеринг закончен
-                if (got_all_render_results) {
-                    render_in_progress.set(false);
-                    clearInterval(process_render_task_results);
-                    resolve(got_all_render_results);
-                }
-            }, 1000);
+        // Предполагается, что в результате может быть получено только 5 изображений
+        for (let image_idx = 0; image_idx < max_set_images_number; image_idx++) {
+
+            // Если новое изображение сета существует, и оно не равно текущему изображению на свайпере, то запоминаем это изображение и обновляем свайпер
+            if ($render_task_result_data.images[image_idx] !== undefined && $swiper_images[image_idx] !== $render_task_result_data.images[image_idx]) {
+                $swiper_images[image_idx] = $render_task_result_data.images[image_idx];
+                update_swiper.set(true);
+            }
+
+        }
+
+        // if ($render_task_result_data.images[0] !== undefined && $swiper_images[0] !== $render_task_result_data.images[0]) {
+        //     $swiper_images[0] = $render_task_result_data.images[0];
+        //     update_swiper.set(true);
+        // }
+
+        // if ($render_task_result_data.images[1] !== undefined && $swiper_images[1] !== $render_task_result_data.images[1]) {
+        //     $swiper_images[1] = $render_task_result_data.images[1];
+        //     update_swiper.set(true);
+        // }
+
+        // if ($render_task_result_data.images[2] !== undefined && $swiper_images[2] !== $render_task_result_data.images[2]) {
+        //     $swiper_images[2] = $render_task_result_data.images[2];
+        //     update_swiper.set(true);
+        // }
+
+        // if ($render_task_result_data.images[3] !== undefined && $swiper_images[3] !== $render_task_result_data.images[3]) {
+        //     $swiper_images[3] = $render_task_result_data.images[3];
+        //     update_swiper.set(true);
+        // }
+
+        // if ($render_task_result_data.images[4] !== undefined && $swiper_images[4] !== $render_task_result_data.images[4]) {
+        //     $swiper_images[4] = $render_task_result_data.images[4];
+        //     update_swiper.set(true);
+        // }
+    }
+
+    /**
+     * Обрабытывает результаты задачи на рендеринг и, возвращая промиз об успешном выполнении задачи (см. подробнее - https://learn.javascript.ru/promise)
+     * @returns {Promise<boolean>} - промиз об успешном выполнении задачи
+     */
+    function processRenderTaskResults() {
+        return new Promise((resolve) => {
+            let process_render_task_result_data = setInterval(
+                async function () {
+                    // Делаем запрос на получение данных результата задачи на рендеринг
+                    let got_all_render_task_result_data =
+                        await getRenderTaskResult($render_task.id);
+
+                    // Делаем запрос на получение данных для прогресс-баров результата задачи на рендеринг
+                    // await getRenderTaskResultProgress($render_task.id);
+
+                    // Обновляем изображения в свайпере
+                    updateSwiperImages();
+
+                    // Если получены все результаты рендеринга, то прекращаем запросы и отмечаем, что рендеринг закончен
+                    if (got_all_render_task_result_data) {
+                        render_in_progress.set(false);
+                        clearInterval(process_render_task_result_data);
+                        resolve(got_all_render_task_result_data);
+                    }
+                },
+                1000,
+            );
         });
     }
 
-    /**
-     * Получает похожие сеты товаров
-     * @param {string} product_set_id - идентификатор сета на рендерениг
-     */
-    async function getSimilarProductSets(product_set_id) {
-        return fetch(
-            "/products/product_sets/similar_sets?" +
-                new URLSearchParams({
-                    id: product_set_id,
-                }).toString(),
-        )
-            .then(async (r) => await r.json())
-            .then((r) => {
-                similar_product_sets.set(r);
-                console.log($similar_product_sets);
-            })
-            .catch((error) => {
-                console.log(error);
-                similar_product_sets.set([]);
-            });
-    }
-
-    // /**
-    //  * Получает результаты выполнения задачи на рендеринг
-    //  * @param {string} set_id - идентификатор сета товаров
-    //  * @param {string} token - токен пользователя
-    //  */
-    //  async function addProductSetToPersonalAccount(set_id, token) {
-    //     const resp = await fetch(
-    //         "/products/product_sets/preference/set_like?" +
-    //             new URLSearchParams({ set_id: set_id }).toString(),
-    //         {
-    //             headers: {
-    //                 Authorization: `Token ${token}`,
-    //             },
-    //         },
-    //     );
-
-    //     if (!resp.ok) {
-    //         throw new Error(`Error: ${resp.status}`);
-    //     }
-    // }
-
-    let product_set_data_for_rendering = {};
-
     async function handleStylumClick() {
-        // Отмечаем, что в процессе рендеринга не нужно отображать кнопку "Stylum"
-        show_stylum_button.set(false);
+        // Отмечаем, обязательный слот не заполнен. Нужно, чтобы убрать показ кнопки "Stylum" после нажатия на нее
+        is_not_optional_slot_filled.set(false);
 
         // Если ранее были получены результаты рендеринга и кнопка "Stylum" нажата повторно,
         // то затираем старые данные и ждем результатов выполнения новой задачи на рендеринг
-        render_task_results.set({
+        render_task_result_data.set({
             id: "",
             scene: "",
             images: [],
             sequences: [],
             videos: [],
             product_set_id: "",
+            is_product_set_active: false,
+            is_product_set_liked: false,
         });
 
         similar_product_sets.set([]);
@@ -168,19 +215,26 @@
             size_desc: false,
         });
 
+        progress_render_task_result.set({
+            progress_images: 0,
+            progressbar_images_type: 5,
+            progress_video: 0,
+            progress_sequences: 0,
+        });
+
         // Отмечаем, что нужно показывать слайдеры с результатами рендеринга
         show_render_results_sliders.set(true);
 
         // Определяем данные товаров, необходимые для создания задачи на рендеринг
-        product_set_data_for_rendering = {
-            chosen_set_type_id: $chosen_set_type_id, // Идентифкатор типа сета
+        $product_set_data_for_rendering = {
+            chosen_set_type_id: $chosen_set_type_id, // Идентификатор типа сета
             sku: $curr_chosen_sku, // Массив артикулов товаров, выбранных пользователем
-            // userProfile: $user_data.email, // Данные пользователя
-            scene: $render_task_results.scene, // Значение сцены берем из результатов рендеринга, при первом создании сета поле "scene" принимает значение пустой строки
+            scene: $render_task_result_data.scene, // Значение сцены берем из результатов рендеринга, при первом создании сета поле "scene" принимает значение пустой строки
         };
 
-        console.log($render_task_results.scene);
-        console.log(JSON.stringify(product_set_data_for_rendering));
+        console.log($curr_chosen_sku);
+
+        console.log(JSON.stringify($product_set_data_for_rendering));
 
         // Получаем значение токена пользователя из куки
         let token = getCookie("token");
@@ -192,7 +246,7 @@
                 "Content-Type": "application/json;charset=utf-8",
                 Authorization: `Token ${token}`,
             },
-            body: JSON.stringify(product_set_data_for_rendering),
+            body: JSON.stringify($product_set_data_for_rendering),
         });
 
         if (!resp.ok) {
@@ -208,11 +262,23 @@
         // Отмечаем, что начался процесс рендеринга
         render_in_progress.set(true);
 
+        // Отмечаем, что кнопки "Video" и "Interactive Photos" не показывать после нажатия на кнопку "Stylum"
+        show_go_to_video_button.set(false);
+        show_go_to_interactive_photos_button.set(false);
+
+        // Отмечаем, что кнопки "Video" и "Interactive Photos" не проскроллированы и могут быть вновь показаны на странице
+        go_to_video_button_is_scrolled.set(false);
+        go_to_interactive_button_is_scrolled.set(false);
+
         // Отмечаем, что каталог товаров больше показывать не нужно
         show_products_catalog.set(false);
 
-        // Не показываем больше картинки товаров на слайдере создания сета
-        show_product_images.set(false);
+        // Устанавливаем, что у свайпера текущим активным слайдом является первый слайд
+        go_to_first_swiper_slide.set(true);
+
+        // Заполняем свайпер гифками, которые характеризуюти процесс рендринга
+        swiper_images.set(Array(max_set_images_number).fill("/static/images/support.webp"))
+        update_swiper.set(true);
 
         // Нужно, чтобы кнопки "Modify" и "Delete" на заполненных слотах не отображались
         $chosen_slots
@@ -226,26 +292,28 @@
 
         chosen_slots.set($chosen_slots);
 
-        processRenderTaskResults(token).then(async () => {
-            console.log($render_task_results);
+        processRenderTaskResults().then(async () => {
 
-            // Добавляем созданный сет в личный кабинет пользователя
-            // await addProductSetToPersonalAccount($render_task_results.product_set_id, token);
+            // swiper_set_images.set($render_task_result_data.images);
+            // swiper_with_set_images_can_be_shown.set(true);
+
+            console.log($render_task_result_data);
 
             // Обновляем количество сетов пользователя после получения результатов рендеринга
             await getUserNumberFavouriteSets(token);
 
             // Когда получили результаты рендеринга, делаем запрос на получение похожих сетов товаров
-            await getSimilarProductSets($render_task_results.product_set_id);
+            await getSimilarProductSets(
+                $render_task_result_data.product_set_id,
+            );
         });
     }
 </script>
 
 <!-- Если выбран обязательный товар или артикулы товаров, отправленных ранее на рендеринг, не совпадают с артикулами товаров, которые находятся в заполненных слотах, то отображяется кнопка Stylum -->
-
-<!-- {#if stylum_button_is_active} -->
+<!--     class={`button button--dark${$show_stylum_button || ($render_task_result_data.images.length > 0 && !_.isEqual($curr_chosen_sku, $product_set_data_for_rendering.sku)) ? " js--active" : ""}`} -->
 <button
-    class={`button button--dark${$show_stylum_button || ($render_task_results.images.length > 0 && !_.isEqual($curr_chosen_sku, product_set_data_for_rendering.sku)) ? " js--active" : ""}`}
+    class={`button button--dark${$is_not_optional_slot_filled && !_.isEqual($curr_chosen_sku, $product_set_data_for_rendering.sku) ? " js--active" : ""}`}
     data-button="stylum"
     on:click={() => handleStylumClick()}
     style={`${stylum_button_is_active ? "" : "background: #808080"}`}
@@ -284,66 +352,49 @@
         ></path>
     </svg>
 </button>
-<!-- {/if} -->
 
-<!--   
-        // let process_render_task_results = setInterval(async function () {
-        //     let got_all_render_results = await getRenderTaskResults(
-        //         $render_task.id,
-        //     );
+<!--            
+        show_product_images.set(false);        
+        // Во время рендеринга на свайперах нет изображений для вывода
+        // swiper_set_images.set([]);
+        // swiper_product_images.set([]);
+        // swiper_with_set_images_can_be_shown.set(false);
 
-        //     // Если получены все результаты рендеринга, то прекращаем запросы и отмечаем, что рендеринг закончен
-        //     if (got_all_render_results) {
-        //         render_in_progress.set(false);
-        //         clearInterval(process_render_task_results);
-        //     }
-        // }, 1000);
+// Если получены отрендеренные изображения и количество полученных чек-поинтов прогресс-бара изображений совпадает с типом прогресс-бара,
+                    // то запоминаем полученные изображения сета и выводим их на слайдере
+                    // if (
+                    //     $render_task_result_data.images.length > 0 &&
+                    //     $progress_render_task_result.progress_images ===
+                    //         $progress_render_task_result.progressbar_images_type &&
+                    //     got_all_render_task_result_images === false
+                    // )
 
-        // got_result_images.set(false);
-        // got_result_video.set(false);
-        // got_result_sequences.set(false);
-        // got_all_render_results.set(false);
-        // rendering_of_video_in_progress.set(false);
-// У всех закэшированных товаров заполненных слотов отмечаем, что они уже добавлены в сет
-        // Когда пользователь откроет каталог товаров, который закэширован, товар, который уже в сете,
-        // будет помечен как добавленный, и не сможет его добавить повторно
-            // $cached_filled_slots.data.forEach((cached_filled_slot) => {
-            //     let chosen_slot = $chosen_slots.filter((slot) => slot.is_chosen).find(
-            //         (chosen_slot) =>
-            //             chosen_slot.order_num === cached_filled_slot.order_num,
-            //     );
+                    // if (
+                    //     $swiper_set_images.length <
+                    //     $render_task_result_data.images.length
+                    // ) {
+                    //     got_all_render_task_result_images = false;
+                    //     got_partial_results.set(true);
+                    // }
 
-            //     let product_in_set = cached_filled_slot.products.find(
-            //         (product) => product.sku === chosen_slot.sku,
-            //     );
-            //     product_in_set.is_added === true;
-            // });
+                    // if (
+                    //     $render_task_result_data.images.length > 0 &&
+                    //     $progress_render_task_result.progress_images ===
+                    //         $progress_render_task_result.progressbar_images_type &&
+                    //     got_all_render_task_result_images === false
+                    // )
 
-        // cached_filled_slots.set($cached_filled_slots);
-                // Запоминаем артикулы товаров, изображения которых будут отправлены на рендеринг
-        // $sku_for_rendering = $chosen_slots
-        //     .filter((slot) => slot.is_chosen)
-        //     .map((filled_slot) => filled_slot.sku); 
-                    // if ($render_task_results.images.length > 0) {
-            //     got_result_images.set(true);
-            // }
+                    // if (
+                    //     $render_task_result_data.images.length > 0 &&
+                    //     got_all_render_task_result_images === false
+                    // ) {
+                    //     swiper_set_images.set($render_task_result_data.images);
+                    //     got_all_render_task_result_images = true;
+                    // }
 
-            // if ($render_task_results.videos.length > 0) {
-
-            //     console.log($render_task_results.videos[0]);
-
-            //     if ($render_task_results.videos[0].includes("/live/")) {
-            //         rendering_of_video_in_progress.set(true);
-            //     } else {
-            //         rendering_of_video_in_progress.set(false);
-            //         got_result_video.set(true);
-            //     }
-            // }
-
-            // if ($render_task_results.sequences.length > 0) {
-            //     got_result_sequences.set(true);
-            // }
-
-            // console.log($got_all_render_results);
-
-        -->
+                    // if ($render_task_result_data.images.length > 0) {
+                        // swiper_set_images.set($render_task_result_data.images);
+                        // $swiper_set_images.splice(0, $render_task_result_data.images.length, ...$render_task_result_data.images);
+                    // $swiper_images.splice(0, $render_task_result_data.images.length, ...$render_task_result_data.images);
+                        // swiper_with_set_images_can_be_shown.set(true);
+                    //}-->

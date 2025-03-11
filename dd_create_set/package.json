@@ -22,6 +22,7 @@
     "lodash.sortby": "^4.7.0",
     "lodash.uniq": "^4.5.0",
     "svelte-range": "^1.0.5",
-    "svelte-video-player": "^1.2.5"
+    "svelte-video-player": "^1.2.5",
+    "swiper": "^11.2.4"
   }
 }

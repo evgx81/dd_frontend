@@ -1,65 +1,24 @@
 <script>
-    import { afterUpdate } from "svelte";
+    import { afterUpdate, onMount } from "svelte";
     import {
         is_authenticated,
         similar_product_sets,
         getUserNumberFavouriteSets,
         getCookie,
+        initProductAndSimilarProductSetSliders,
     } from "./stores";
 
-    const initialSliders = () => {
-        const buildSwiperSlider = (swiperSliderElement) => {
-            const swiperSlider = swiperSliderElement;
-            const swiperPagination =
-                swiperSlider.querySelector(".swiper-pagination");
-            if (!swiperSlider) return;
-
-            const currentSwiper = new Swiper(swiperSlider, {
-                effect: "fade",
-                fadeEffect: {
-                    crossFade: true,
-                },
-                pagination: {
-                    el: swiperPagination,
-                    clickable: true,
-                },
-            });
-
-            swiperSlider.addEventListener("mousemove", (event) => {
-                const rect = swiperSlider.getBoundingClientRect();
-                const x = event.clientX - rect.left;
-                const width = rect.width;
-
-                const numberOfSlides = currentSwiper.slides.length;
-                const partWidth = width / numberOfSlides;
-                const slideIndex = Math.floor(x / partWidth);
-
-                currentSwiper.slideTo(slideIndex);
-            });
-        };
-
-        const slidersParents = document.querySelectorAll(
-            '[data-name="slider-parent"]',
-        );
-
-        slidersParents.forEach((slidersParent) => {
-            const swiperSliders = slidersParent.querySelectorAll(".swiper");
-            swiperSliders.forEach((swiperSlider) =>
-                buildSwiperSlider(swiperSlider),
-            );
-        });
-    };
-
     afterUpdate(() => {
-        initialSliders();
+        // После подгрузки данных похожих сетов инициализируем перелистывание изображений сетов
+        initProductAndSimilarProductSetSliders();
     });
 
     /**
      * Обработка события, когда пользователь нажимает на лайк у сета с изображением
      * @param {string} set_id - идентификатор сета
-     * @param {boolean} set_id - показывает лайкнут ли сет или нет
+     * @param {boolean} is_set_liked - показывает лайкнут ли сет или нет
      */
-    async function handleLikeClick(set_id, is_set_liked) {
+    async function handleSimilarProductsSetLikeClick(set_id, is_set_liked) {
         // Получаем значение токена пользователя из куки
         let token = getCookie("token");
 
@@ -114,6 +73,10 @@
         // Получаем обновленное количество лайкнутых сетов
         await getUserNumberFavouriteSets(token);
     }
+
+    onMount(() => {
+        console.log($similar_product_sets);
+    });
 </script>
 
 <section class="section section-quote">
@@ -123,7 +86,7 @@
     <div class="container">
         <div
             class="catalog-sliders catalog-sliders--six-set"
-            data-name="slider-parent"
+            data-name="slider-parent-product-or-similar_set"
         >
             <!-- 6 шт -->
             {#each $similar_product_sets.slice(0, 6) as product_set}
@@ -131,12 +94,11 @@
                     <div class="catalogs__set-free-img swiper">
                         <div class="swiper-wrapper">
                             {#each product_set.images as image}
+                                <!-- svelte-ignore a11y-img-redundant-alt -->
                                 <img
                                     class="swiper-slide"
                                     src={image}
                                     alt="image"
-                                    width="45px"
-                                    height="45px"
                                 />
                             {/each}
                         </div>
@@ -147,9 +109,6 @@
                                 class="swiper-pagination-bullet swiper-pagination-bullet-active"
                                 aria-current="true"
                             ></span>
-                            {#each product_set.images as _}
-                                <span class="swiper-pagination-bullet"
-                                ></span>{/each}
                         </div>
                         <span
                             class="swiper-notification"
@@ -164,32 +123,37 @@
                             >
                                 {#each product_set.products as product}
                                     <div class="set-options__item">
+                                        <!-- svelte-ignore a11y-img-redundant-alt -->
                                         <img
                                             src={product.image}
                                             alt="image"
                                             class="set-options__img"
-                                            width="45px"
-                                            height="45px"
                                         />
-                                        <div class="set-options__price">
-                                            $ {product.price}
-                                        </div>
                                     </div>
                                 {/each}
                             </div>
                             <div class="set-options__footer">
-                                <button
-                                    class="set-options__button button--accent"
-                                    >Modify</button
+                                <div
+                                    class="catalog-price-total catalog-price-total--height"
                                 >
-                                <button class="set-options__button button--dark"
-                                    >See more</button
-                                >
-                                <div class="set-options__text-wrapper">
-                                    <div class="set-options__text">
-                                        $ {product_set.total_price}
-                                    </div>
+                                    Total <span class="bold">
+                                        <span data-name="item-count">
+                                            {product_set.products.length}
+                                        </span> items</span
+                                    >
+                                    for :
+                                    <span
+                                        class="bold size"
+                                        data-name="total-price"
+                                        >$ {product_set.total_price}</span
+                                    >
                                 </div>
+                                <a
+                                    href={`/set_card/${product_set.id}`}
+                                    class="set-options__button button--dark"
+                                >
+                                    See more
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -198,10 +162,10 @@
                     {#if $is_authenticated}
                         <!-- svelte-ignore a11y-click-events-have-key-events -->
                         <div
-                            class={`like ${product_set.is_liked ? "js--active" : ""}`}
+                            class={`like${product_set.is_liked ? " js--active" : ""}`}
                             data-name="like"
                             on:click={() =>
-                                handleLikeClick(
+                                handleSimilarProductsSetLikeClick(
                                     product_set.id,
                                     product_set.is_liked,
                                 )}
@@ -232,19 +196,18 @@
     <div class="container">
         <div
             class="catalog-sliders catalog-sliders--three-set-reverse"
-            data-name="slider-parent"
+            data-name="slider-parent-product-or-similar_set"
         >
             {#each $similar_product_sets.slice(6, 9) as product_set, idx}
                 <div id={product_set.id} class="catalogs__set-free-img-wrapper">
                     <div class="catalogs__set-free-img swiper">
                         <div class="swiper-wrapper">
                             {#each product_set.images as product_set_image}
+                                <!-- svelte-ignore a11y-img-redundant-alt -->
                                 <img
                                     class="swiper-slide"
                                     src={product_set_image}
                                     alt="image"
-                                    width="45px"
-                                    height="45px"
                                 />
                             {/each}
                         </div>
@@ -255,9 +218,6 @@
                                 class="swiper-pagination-bullet swiper-pagination-bullet-active"
                                 aria-current="true"
                             ></span>
-                            {#each product_set.images as _}
-                                <span class="swiper-pagination-bullet"></span>
-                            {/each}
                         </div>
                         <span
                             class="swiper-notification"
@@ -267,40 +227,75 @@
                     </div>
                     <div class="set-options" data-name="set-options">
                         <div
-                            class="set-options__wrapper set-options__wrapper--height-min"
+                            class={`${idx === 0 ? "set-options__wrapper set-options__wrapper--height-min" : "set-options__wrapper"}`}
                         >
                             <div
-                                class={`${idx === 0 ? "set-options__inner set-options__inner--six" : "set-options__inner set-options__inner--three"} `}
+                                class={`${idx === 0 ? "set-options__inner set-options__inner--six" : "set-options__inner set-options__inner--three"}`}
                             >
                                 {#each product_set.products as product}
                                     <div class="set-options__item">
+                                        <!-- svelte-ignore a11y-img-redundant-alt -->
                                         <img
                                             src={product.image}
                                             alt="image"
                                             class="set-options__img"
-                                            width="45px"
-                                            height="45px"
                                         />
-                                        <div class="set-options__price">
-                                            $ {product.price}
-                                        </div>
                                     </div>
                                 {/each}
-                            </div>
-                            <div class="set-options__footer">
-                                <button
-                                    class="set-options__button button--accent"
-                                    >Modify</button
-                                >
-                                <button class="set-options__button button--dark"
-                                    >See more</button
-                                >
-                                <div class="set-options__text-wrapper">
-                                    <div class="set-options__text">
-                                        $ {product_set.total_price}
+
+                                {#if idx === 0}
+                                    <div class="set-options__box">
+                                        <div
+                                            class="catalog-price-total catalog-price-total--height"
+                                        >
+                                            Total <span class="bold">
+                                                <span data-name="item-count">
+                                                    {product_set.products
+                                                        .length}
+                                                </span> items</span
+                                            >
+                                            for :
+                                            <span
+                                                class="bold size"
+                                                data-name="total-price"
+                                                >$ {product_set.total_price}</span
+                                            >
+                                        </div>
+                                        <a
+                                            href={`/set_card/${product_set.id}`}
+                                            class="set-options__button button--dark"
+                                        >
+                                            See more
+                                        </a>
                                     </div>
-                                </div>
+                                {/if}
                             </div>
+
+                            {#if idx !== 0}
+                                <div class="set-options__footer">
+                                    <div
+                                        class="catalog-price-total catalog-price-total--height"
+                                    >
+                                        Total <span class="bold">
+                                            <span data-name="item-count">
+                                                {product_set.products.length}
+                                            </span> items</span
+                                        >
+                                        for :
+                                        <span
+                                            class="bold size"
+                                            data-name="total-price"
+                                            >$ {product_set.total_price}</span
+                                        >
+                                    </div>
+                                    <a
+                                        href={`/set_card/${product_set.id}`}
+                                        class="set-options__button button--dark"
+                                    >
+                                        See more
+                                    </a>
+                                </div>
+                            {/if}
                         </div>
                     </div>
                     {#if $is_authenticated}
@@ -310,7 +305,7 @@
                             class={`like ${product_set.is_liked ? "js--active" : ""}`}
                             data-name="like"
                             on:click={() =>
-                                handleLikeClick(
+                                handleSimilarProductsSetLikeClick(
                                     product_set.id,
                                     product_set.is_liked,
                                 )}

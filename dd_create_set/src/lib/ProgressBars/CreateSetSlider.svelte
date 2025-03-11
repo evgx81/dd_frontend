@@ -1,28 +1,240 @@
-<script>
-    import { afterUpdate } from "svelte";
+<!-- <script>
+    import { afterUpdate, onMount } from "svelte";
     import {
         chosen_slots,
         curr_chosen_slot_num,
         getCookie,
         getUserNumberFavouriteSets,
-        go_to_first_swiper_slide,
         is_authenticated,
+        product_images,
         render_in_progress,
         render_task_result_data,
-        swiper_images,
-        update_swiper,
+        show_product_images,
+        is_set_card_page,
+        progress_render_task_result,
     } from "./stores";
 
     /**
-     * Cтиль, который нужно выводить на окне, которое лежит поверх слайдера с изображениями. Необходим, чтобы правильно обработать переходы на разные состояния слайдера.
+     * Cтиль, который нужно выводить на окне, которое лежит поверх слайдера. Нужно, чтобы красиво обработать переходы на разные состояния слайдера.
      * @type {string}
      */
-    let curr_slider_images_style = "js--active";
+    let curr_style = "js--active"; // Состояние, когда на слайдере ничего не выводится
+    let swiper_init = false;
+    let set_slider;
+    afterUpdate(() => {
+        // Определяем текущий стиль окна, которое лежит поверх слайдера с изображениями
+        curr_style = getImagesSliderStyle();
 
-    /**
-     * Хранит номер текущего активного слайда на свайпере
-     */
-    let curr_swiper_slide_index = 0;
+        // Сначала инициализируем слайдер с ихображениями
+        // if (
+
+        // ) {
+        //     // if (curr_style === "js--none") {
+        //     const swiperSlider = document.querySelector(
+        //         '[data-name="slider-set"]',
+        //     );
+        //     swiper = new Swiper(swiperSlider, {
+        //         effect: "fade",
+        //         // init: false,
+        //         fadeEffect: {
+        //             crossFade: true,
+        //         },
+        //         pagination: {
+        //             el: swiperSlider.querySelector(".swiper-pagination"),
+        //             clickable: true,
+        //         },
+        //         navigation: {
+        //             nextEl: swiperSlider.querySelector(".arrow--next"),
+        //             prevEl: swiperSlider.querySelector(".arrow--prev"),
+        //         },
+        // });
+        // swiper.enable();
+
+        // if (swiper_init === false) {
+        // swiper.init();
+        // swiper_init = true;
+        // }
+
+        // buildSwiperSlider();
+        // swiper.update();
+
+        if (
+            $render_task_result_data.images.length > 0 ||
+            ($show_product_images &&
+                $progress_render_task_result.progress_images ===
+                    $progress_render_task_result.progressbar_images_type)
+        ) {
+            buildSwiperSlider();
+        }
+        // }
+
+        // if (
+        //     $render_in_progress &&
+        //     $render_task_result_data.images.length === 0
+        // ) {
+        //     swiper.destroy();
+        // }
+        // const swiperSliderProductImages = document.querySelector(
+        //     '[data-name="slider-set-product-images"]',
+        // );
+
+        // const swiperSliderSetImages = document.querySelector(
+        //     '[data-name="slider-set-set-images"]',
+        // );
+
+        // if (
+        //     swiperSliderProductImages === null ||
+        //     swiperSliderSetImages === null
+        // ) {
+        //     return;
+        // }
+
+        // if (
+        //     ($show_product_images ||
+        //         $render_task_result_data.images.length > 0) &&
+        //     $progress_render_task_result.progress_images ===
+        //         $progress_render_task_result.progressbar_images_type
+        // ) {
+        //     buildSwiperSlider(swiperSliderProductImages);
+
+        //     set_slider = buildSwiperSlider(swiperSliderSetImages);
+        // }
+
+        // if (
+        //     $render_in_progress &&
+        //     $render_task_result_data.images.length === 0
+        // ) {
+        //     console.log("Туть");
+        //     // swiper_init = false;
+        //     set_slider.destroy();
+        // }
+
+        // Инициализуем превью галерии изображений в зависимости от текущего стиля окна, лежащего поверх слайдера
+        initPreviewImagesGallery(curr_style);
+    });
+
+    function buildSwiperSlider() {
+        const swiperSlider = document.querySelector('[data-name="slider-set"]');
+        swiper = new Swiper(swiperSlider, {
+            effect: "fade",
+            // init: false,
+            fadeEffect: {
+                crossFade: true,
+            },
+            pagination: {
+                el: swiperSlider.querySelector(".swiper-pagination"),
+                clickable: true,
+            },
+            navigation: {
+                nextEl: swiperSlider.querySelector(".arrow--next"),
+                prevEl: swiperSlider.querySelector(".arrow--prev"),
+            },
+        });
+    }
+
+    let swiper;
+    // function buildSwiperSlider(swiperSlider) {
+    //     swiper = new Swiper(swiperSlider, {
+    //         effect: "fade",
+    //         // init: false,
+    //         fadeEffect: {
+    //             crossFade: true,
+    //         },
+    //         pagination: {
+    //             el: swiperSlider.querySelector(".swiper-pagination"),
+    //             clickable: true,
+    //         },
+    //         navigation: {
+    //             nextEl: swiperSlider.querySelector(".arrow--next"),
+    //             prevEl: swiperSlider.querySelector(".arrow--prev"),
+    //         },
+    //     });
+    // }
+
+    function initPreviewImagesGallery(curr_slider_style) {
+        const swiperSlider = document.querySelector('[data-name="slider-set"]');
+        const pagination = swiperSlider.querySelector(".swiper-pagination");
+        let paginationItems = pagination.querySelectorAll(
+            ".swiper-pagination-bullet",
+        );
+
+        // Если на слайдере нет изображений для вывода, то скрываем превью галерии изображений
+        if (curr_slider_style !== "js--none") {
+            pagination.classList.remove("js--preview");
+            pagination.classList.remove("js--active");
+            pagination.classList.remove("js--position");
+            pagination.classList.add("js--hidden");
+        }
+        // В противном случае отображаем превью галерии на экране
+        else {
+            pagination.classList.remove("js--hidden");
+            pagination.classList.add("js--preview");
+            pagination.classList.add("js--active");
+            pagination.classList.add("js--position");
+        }
+
+        // Заполняем превью галерии текущими изображениями, которые отображаются на слайдере
+        const slides = swiperSlider.querySelectorAll(".swiper-slide");
+
+        // Если нет данных для вывода изображений на слайдере, то не инициализируем показ слайдов
+        if (slides.length === 0) {
+            return;
+        }
+
+        console.log(slides);
+
+        paginationItems.forEach((item, index) => {
+            const image = document.createElement("img");
+            image.classList.add("pagination-preview__image");
+            image.src = slides[index].src;
+            item.insertAdjacentElement("beforeend", image);
+        });
+
+        // console.log(pagination);
+    }
+
+    // function initPreviewImagesGallery(swiperSlider, curr_slider_style) {
+    //     console.log(swiperSlider);
+    //     // const swiperSlider = document.querySelector('[data-name="slider-set"]');
+    //     const pagination = swiperSlider.querySelector(".swiper-pagination");
+    //     let paginationItems = pagination.querySelectorAll(
+    //         ".swiper-pagination-bullet",
+    //     );
+
+    //     // Если на слайдере нет изображений для вывода, то скрываем превью галерии изображений
+    //     if (curr_slider_style !== "js--none") {
+    //         pagination.classList.remove("js--preview");
+    //         pagination.classList.remove("js--active");
+    //         pagination.classList.remove("js--position");
+    //         pagination.classList.add("js--hidden");
+    //     }
+    //     // В противном случае отображаем превью галерии на экране
+    //     else {
+    //         pagination.classList.remove("js--hidden");
+    //         pagination.classList.add("js--preview");
+    //         pagination.classList.add("js--active");
+    //         pagination.classList.add("js--position");
+    //     }
+
+    //     // Заполняем превью галерии текущими изображениями, которые отображаются на слайдере
+    //     const slides = swiperSlider.querySelectorAll(".swiper-slide");
+
+    //     // Если нет данных для вывода изображений на слайдере, то не инициализируем показ слайдов
+    //     if (slides.length === 0) {
+    //         return;
+    //     }
+
+    //     console.log(slides);
+
+    //     paginationItems.forEach((item, index) => {
+    //         const image = document.createElement("img");
+    //         image.classList.add("pagination-preview__image");
+    //         image.src = slides[index].src;
+    //         item.insertAdjacentElement("beforeend", image);
+    //     });
+
+    //     // console.log(pagination);
+    // }
 
     /**
      * Получаем стиль окна, которое лежит поверх слайдера слайдера с изображениями
@@ -31,14 +243,14 @@
         let curr_style = "js--active"; // Состояние, когда на слайдере не выводится изображений
 
         // Состояние, когда на слайдере с изображениями есть изображения для вывода
-        // if ($curr_swiper_images.length > 0) {
-        // if (
-        //     $swiper_product_images.length > 0 ||
-        //     ($swiper_set_images.length > 0 &&
-        //         $swiper_with_set_images_can_be_shown)
-        // ) {
-        if ($swiper_images.length > 0) {
-
+        // if ($show_product_images || $render_task_result_data.images.length > 0) {
+        if (
+            ($show_product_images ||
+                $render_task_result_data.images.length > 0) &&
+            $progress_render_task_result.progress_images ===
+                $progress_render_task_result.progressbar_images_type
+        ) {
+            console.log("Туть");
             curr_style = "js--none"; // Состояние, когда на слайдере выводятся изображения
 
             // Находим текущий выбранный слот
@@ -46,14 +258,14 @@
                 (slot) => slot.order_num === $curr_chosen_slot_num,
             );
 
-            // Если получены отрендеренные изображения и на слоте кликнута кнопка "Delete", то показываем изображения сета
+            // Если получены отрендеренные изображения, то на слоте кликнута кнопка "Delete", то показываем изображения сета
             if (
                 $render_task_result_data.images.length > 0 &&
                 chosen_slot.clicked_delete_button === true
             ) {
                 curr_style = "js--none";
             }
-            // Если получены отрендеренные изображения и кликнули на пустой слот, то показываем на слайдере надпись "Here will be photos"
+            // Если получены отрендеренные изображения, то кликнули на пустой слот, то показываем на слайдере надпись "Here will be photos"
             else if (
                 $render_task_result_data.images.length > 0 &&
                 chosen_slot.is_chosen === false
@@ -61,16 +273,19 @@
                 curr_style = "js--active";
             }
         }
-        // Если происходит рендеринг, то выводим окно с прогресс-баром
+        // Если происходит редеринг, то выводим окно с прогресс-баром
         else if ($render_in_progress) {
-            // curr_style = "js--hidden";
-            curr_style = "js--none";
+            curr_style = "js--hidden";
         }
-
-        console.log(curr_style);
 
         return curr_style;
     }
+
+    // Флаг, который показывает, что все результаты рендеринга получены
+    $: got_all_render_task_result_data =
+        $render_task_result_data.images.length > 0 &&
+        $render_task_result_data.videos.length > 0 &&
+        $render_task_result_data.sequences.length > 0;
 
     /**
      * Обработка события, когда пользователь нажимает на лайк у сета на слайдере с изображениями
@@ -126,184 +341,121 @@
         // Получаем обновленное количество лайкнутых сетов
         await getUserNumberFavouriteSets(token);
     }
+</script> -->
 
-    afterUpdate(() => {
-        // Определяем текущий стиль окна, которое лежит поверх слайдера с изображениями
-        curr_slider_images_style  = getImagesSliderStyle();
-
-        // if(swiper_images1 !== $swiper_images && $render_in_progress === false) {
-        //     swiper_images1 = $swiper_images;
-        //     buildSwiperSlider();
-        //     curr_swiper.slideTo(0);
-        //     initPreviewImagesGallery(swiper_images1);
-        // }
-
-        if ($update_swiper) {
-
-            // Если рендеринг происходит, то свайпер будет обновляться при появлении новых изображений сета.
-            // Для того чтобы пользователя не перекидывало на первый слайд при каждом обновлении изображений, запоминаем текущий слайд свайпера и переходим на него во время рендеринга
-            if ($render_in_progress) {
-                curr_swiper_slide_index = curr_swiper.realIndex;
-            }
-
-            // Если текущий свайпер существует, но изображения нужно обновить, то удаляем текущий свайпер
-            if (curr_swiper !== undefined) {
-                curr_swiper.destroy();
-            }
-
- 
-            // Инициализируем свайпер для перелистывания текущих изображений, если они есть, и превью галерии
-            buildSwiperSlider();
-            initPreviewImagesGallery();
-
-            // Переходим на первый слайд, если это необходимо. Это необходимо, чтобы пользователя вернуло не
-            if ($go_to_first_swiper_slide) {
-                curr_swiper_slide_index = 0;
-                go_to_first_swiper_slide.set(false);
-            }
-
-            // Если рендеринг происходит, то переходим на запомненный ранее слайд свайпера
-            if ($render_in_progress) {
-                curr_swiper.slideTo(curr_swiper_slide_index);
-            }
-            
-            update_swiper.set(false);
-        }
- 
-    });
-
-    /**
-     * Текущий свайпер, который выводится на странице
-     */
-    let curr_swiper;
-
-    function buildSwiperSlider() {
-
-        const swiperSlider = document.querySelector('[data-name="slider-set"]');
-        curr_swiper = new Swiper(swiperSlider, {
-            effect: "fade",
-            observer: true, // Если значение этого параметра равно "true", то Swiper будет обновляться каждый раз когда изображения меняются 
-            // observeParents: true,
-            // updateOnImagesReady: true,
-            // freeMode: true,
-            initialSlide: 0,
-            slidesPerView: $swiper_images.length,
-            fadeEffect: {
-                crossFade: true,
-            },
-            pagination: {
-                el: swiperSlider.querySelector(".swiper-pagination"),
-                clickable: true,
-            },
-            navigation: {
-                nextEl: swiperSlider.querySelector(".arrow--next"),
-                prevEl: swiperSlider.querySelector(".arrow--prev"),
-            },
-        });
-    }
-
-    function initPreviewImagesGallery() {
-
-        const swiperSlider = document.querySelector('[data-name="slider-set"]');
-        const pagination = swiperSlider.querySelector(".swiper-pagination");
-        const paginationItems = pagination.querySelectorAll(
-            ".swiper-pagination-bullet",
-        );
-        console.log(paginationItems);
-
-        if (curr_slider_images_style === "js--none") {
-            pagination.classList.remove("js--hidden");
-            pagination.classList.add("js--preview");
-            pagination.classList.add("js--active");
-            pagination.classList.add("js--position");
-        } else {
-            pagination.classList.remove("js--preview");
-            pagination.classList.remove("js--active");
-            pagination.classList.remove("js--position");
-            pagination.classList.add("js--hidden");
-        }
-
-        // Запоминаем изображения, которые нужно отобразить в превью галерии
-        let slides = $swiper_images;
-
-        if (slides.length === 0) {
-            return;
-        }
-
-        // Заполняем превью галерии текущими изображениями, которые отображаются на слайдере
-        paginationItems.forEach((item, index) => {
-            const image = document.createElement("img");
-            image.classList.add("pagination-preview__image");
-            image.src = slides[index];
-            item.insertAdjacentElement("beforeend", image);
-        });
-    }
-
-</script>
-
-<div class="catalogs__set-free-img-wrapper">
-    <!-- Если есть изображения для вывода на слайдере, то инициализирем swiper для их отображения и перелистывания -->
+<!-- <div class="catalogs__set-free-img-wrapper">
     <div class="catalogs__set-free-img swiper" data-name="slider-set">
-        <div class="swiper-wrapper">
-            {#each $swiper_images as image}
-                <!-- svelte-ignore a11y-img-redundant-alt -->
-                <img class="swiper-slide" src={image} alt="image" />
-            {/each}
-        </div>
-        <div
-            class="swiper-pagination swiper-pagination-bullets swiper-pagination-horizontal"
-        >
-        </div>
-
-        <span class="swiper-notification" aria-live="assertive" aria-atomic="true"
-        ></span>
-        <div class="swiper-navigation__arrow arrow--prev">
-            <svg
-                width="14"
-                height="20"
-                viewBox="0 0 14 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+        {#if $show_product_images}
+            <div class="swiper-wrapper">
+                {#each $product_images as image}
+                    <img class="swiper-slide" src={image} alt="image" />
+                {/each}
+            </div>
+            <div
+                class="swiper-pagination swiper-pagination-bullets swiper-pagination-horizontal"
             >
-                <path
-                    d="M1.19929 8.38719L10.8173 1.334C12.1383 0.365227 14 1.30861 14 2.94681L14 17.0532C14 18.6914 12.1383 19.6348 10.8173 18.666L1.19929 11.6128C0.10959 10.8137 0.10959 9.1863 1.19929 8.38719Z"
-                    fill="currentColor"
-                />
-            </svg>
-        </div>
-        <div class="swiper-navigation__arrow arrow--next">
-            <svg
-                width="14"
-                height="20"
-                viewBox="0 0 14 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+                <span
+                    class="swiper-pagination-bullet swiper-pagination-bullet-active"
+                    aria-current="true"
+                ></span>
+            </div>
+            <span
+                class="swiper-notification"
+                aria-live="assertive"
+                aria-atomic="true"
+            ></span>
+
+            <div class="swiper-navigation__arrow arrow--prev">
+                <svg
+                    width="14"
+                    height="20"
+                    viewBox="0 0 14 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        d="M1.19929 8.38719L10.8173 1.334C12.1383 0.365227 14 1.30861 14 2.94681L14 17.0532C14 18.6914 12.1383 19.6348 10.8173 18.666L1.19929 11.6128C0.10959 10.8137 0.10959 9.1863 1.19929 8.38719Z"
+                        fill="currentColor"
+                    />
+                </svg>
+            </div>
+            <div class="swiper-navigation__arrow arrow--next">
+                <svg
+                    width="14"
+                    height="20"
+                    viewBox="0 0 14 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        d="M12.8007 11.6128L3.18273 18.666C1.86167 19.6348 1.74295e-07 18.6914 2.97976e-07 17.0532L1.36298e-06 2.94681C1.48666e-06 1.30861 1.86167 0.365227 3.18273 1.334L12.8007 8.38719C13.8904 9.1863 13.8904 10.8137 12.8007 11.6128Z"
+                        fill="currentColor"
+                    />
+                </svg>
+            </div>
+        {:else}
+            <div class="swiper-wrapper">
+                {#if $progress_render_task_result.progress_images === $progress_render_task_result.progressbar_images_type}
+                    {#each $render_task_result_data.images as image}
+                        <img class="swiper-slide" src={image} alt="image" />
+                    {/each}
+                {/if}
+            </div>
+            <div
+                class="swiper-pagination swiper-pagination-bullets swiper-pagination-horizontal"
             >
-                <path
-                    d="M12.8007 11.6128L3.18273 18.666C1.86167 19.6348 1.74295e-07 18.6914 2.97976e-07 17.0532L1.36298e-06 2.94681C1.48666e-06 1.30861 1.86167 0.365227 3.18273 1.334L12.8007 8.38719C13.8904 9.1863 13.8904 10.8137 12.8007 11.6128Z"
-                    fill="currentColor"
-                />
-            </svg>
-        </div>
-    </div>
+                <span
+                    class="swiper-pagination-bullet swiper-pagination-bullet-active"
+                    aria-current="true"
+                ></span>
+            </div>
+            <span
+                class="swiper-notification"
+                aria-live="assertive"
+                aria-atomic="true"
+            ></span>
 
-    <!-- {#if $show_product_images} 
-        <ProductImagesSwiper />
-    {:else}
-        <SetImagesSwiper />
-    {/if} -->
+            <div class="swiper-navigation__arrow arrow--prev">
+                <svg
+                    width="14"
+                    height="20"
+                    viewBox="0 0 14 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        d="M1.19929 8.38719L10.8173 1.334C12.1383 0.365227 14 1.30861 14 2.94681L14 17.0532C14 18.6914 12.1383 19.6348 10.8173 18.666L1.19929 11.6128C0.10959 10.8137 0.10959 9.1863 1.19929 8.38719Z"
+                        fill="currentColor"
+                    />
+                </svg>
+            </div>
+            <div class="swiper-navigation__arrow arrow--next">
+                <svg
+                    width="14"
+                    height="20"
+                    viewBox="0 0 14 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        d="M12.8007 11.6128L3.18273 18.666C1.86167 19.6348 1.74295e-07 18.6914 2.97976e-07 17.0532L1.36298e-06 2.94681C1.48666e-06 1.30861 1.86167 0.365227 3.18273 1.334L12.8007 8.38719C13.8904 9.1863 13.8904 10.8137 12.8007 11.6128Z"
+                        fill="currentColor"
+                    />
+                </svg>
+            </div>
+        {/if}
+    </div> -->
 
-    <!-- Этот элемент отвечает за окно, которое лежит поверх свайпера с изображениями. -->
+    <!-- Этот элемент отвечает за дефолтное состояние или переход на изображений рендеринга. -->
+    <!-- Нужно выводить только в том случае, если когда нет изображений, которые нужно вывести на слайдер. -->
+    <!-- Это возможно, если не выбран товар и не получены изображения сета или выбран пустой слот  -->
 
     <!-- Подсказка по стилям -->
     <!--  js--hidden - анимация рендеринга -->
     <!--  js--active - окно, когда выводить на слайдер нечего -->
     <!--  js--none   - есть изображения, которые нужно вывести -->
     <!-- ------------------- -->
-    <div
-        class={`slider-preview ${curr_slider_images_style}`}
-        data-name="preview-slider"
-    >
+    <!-- <div class={`slider-preview ${curr_style}`} data-name="preview-slider">
         <div class="slider-preview__inner">
             <div class="slider-preview__icons">
                 <svg
@@ -501,7 +653,11 @@
                     />
                 </svg>
             </div>
-            <div class="slider-preview__text">
+            <div
+                class="slider-preview__text"
+                data-name-preview-text-default="Here will be photos"
+                data-name-preview-text-result="Render in progress"
+            >
                 {#if $render_in_progress}
                     Render in progress
                 {:else}
@@ -509,12 +665,9 @@
                 {/if}
             </div>
         </div>
-    </div>
+    </div> -->
 
-    <!-- ($is_set_card_page || $render_task_result_data.images.length > 0) && $is_authenticated -->
-    {#if $render_task_result_data.images.length > 0 && $is_authenticated}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <!-- {#if ($is_set_card_page || got_all_render_task_result_data) && $is_authenticated}
         <div
             class={`like${$render_task_result_data.is_product_set_liked ? " js--active" : ""}`}
             data-name="like"
@@ -540,7 +693,7 @@
                 {/if}
             </div>
         </div>
-    {/if}
+    {/if} -->
 
     <!-- <form class="download" data-name="input-file-parent">
         <input
@@ -666,6 +819,4 @@
     // });
 
     // currentSwiper.update();
-    // console.log(curr_slider_images); -->
-
-    <!--  -->
+    // console.log(curr_slider_images); --> -->

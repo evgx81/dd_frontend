@@ -4,11 +4,14 @@
         curr_chosen_slot_num,
         chosen_slots,
         filters,
-        product_images,
         render_in_progress,
-        show_product_images,
         show_products_catalog,
         show_render_results_sliders,
+        is_authenticated,
+        swiper_images,
+
+        update_swiper
+
     } from "./stores";
 
     /**
@@ -29,6 +32,7 @@
      * Обрабатывает нажатие на пустой слот сета
      */
     function handleSlotClick() {
+        
         // Если идет рендеринг, то при нажатии на незаполненный слот ничего не происходит
         if ($render_in_progress) {
             return;
@@ -36,9 +40,6 @@
 
         // Запоминаем номер строки таблицы, на которую кликнули
         curr_chosen_slot_num.set(order_num);
-
-        // Помечаем, что кликнув на пустой слот, картинки выводится не будут
-        show_product_images.set(false);
 
         dispatch("message", {
             general_category_id: slot.general_category_id,
@@ -68,43 +69,60 @@
             size_desc: false,
         };
 
-        // При нажатии на пустой слот, показываем каталог товаров
+        // При нажатии на пустой слот, показываем каталог товаров, но не показываем слайдеры с результатами рендеринга
         show_products_catalog.set(true);
         show_render_results_sliders.set(false);
+
+        // Помечаем, что клике на пустой слот нет изображений на выводе на свайпере        
+        swiper_images.set([]);
+        update_swiper.set(true);
     }
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-<li
-    data-name="catalog-set-item"
-    class="catalog-list-item"
-    on:click={() => handleSlotClick()}
->
-    <img
-        src={slot.image_url}
-        alt="furniture"
-        class="catalog-list-item__img"
-    />
 
-    <div class="catalog-list-item__info">
-        <h4 class="catalog-list-item__title">
-            Please choose {slot.general_category_display_name}
-            {#if slot.is_optional}
-                {@html `<span>(optional)</span>`}{/if}
-        </h4>
-    </div>
-</li>
+{#if $is_authenticated}
+    <li
+        data-name="catalog-set-item"
+        class="catalog-list-item"
+        on:click={() => handleSlotClick()}
+    >
+        <img
+            src={slot.image_url}
+            alt="furniture"
+            class="catalog-list-item__img"
+        />
 
-<style>
-    li {
-        transition: box-shadow 0.3s;
-    }
-    li:hover {
-        /* box-shadow: 0px 0px 10px 0px rgba(36, 36, 36, 0.5); */
-        /* filter: drop-shadow(0px 0px 5px rgba(36, 36, 36, 0.5)); */
-        box-shadow:
-            0px 0px 5px 0px rgba(36, 36, 36, 0.5),
-            0px 0px 20px 0px rgba(36, 36, 36, 0.5);
-    }
-</style>
+        <div class="catalog-list-item__info">
+            <h4 class="catalog-list-item__title">
+                Please choose {slot.general_category_display_name}
+                {#if slot.is_optional}
+                    {@html `<span>(optional)</span>`}{/if}
+            </h4>
+        </div>
+    </li>
+{:else}
+    <a
+        href={`/login/?next=${window.location.pathname}`}
+        class="catalog-list-item"
+    >
+        <img
+            src={slot.image_url}
+            alt="furniture"
+            class="catalog-list-item__img"
+        />
+
+        <div class="catalog-list-item__info">
+            <h4 class="catalog-list-item__title">
+                Please choose {slot.general_category_display_name}
+                {#if slot.is_optional}
+                    {@html `<span>(optional)</span>`}{/if}
+            </h4>
+        </div>
+    </a>
+{/if}
+
+<!---        // curr_swiper_images.set([]);
+        //show_product_images.set(false);
+        // swiper_product_images.set([]);-->

@@ -7,6 +7,7 @@
         SCROLLED: "js--scrolled",
         ACTIVE: "js--active",
         NONE: "js--none",
+        SHOW: "js--show",
     };
 
     const initMobilePreview = () => {
