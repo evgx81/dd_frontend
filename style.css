@@ -2514,3 +2514,8 @@ input:checked + .dropdown-checkbox .dropdown-checkbox__mark {
 .catalog-sliders.catalog-sliders--three-set .catalogs__set-free-img-wrapper:first-child .set-options {
   margin-top: -0.4rem;
 }
+@media(min-width: 3000px) {
+  .set-options .set-options__wrapper {
+    min-height: 16.7rem;
+  }
+}
